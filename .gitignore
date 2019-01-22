@@ -28,3 +28,5 @@ node_modules
 
 # Emacs
 *~
+node_modules
+npm-debug.log
