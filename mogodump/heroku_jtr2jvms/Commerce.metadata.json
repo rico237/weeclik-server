@@ -1,0 +1,1 @@
+{"options":{},"indexes":[{"v":1,"key":{"_id":1},"name":"_id_","ns":"heroku_jtr2jvms.Commerce"},{"v":2,"key":{"position":"2d"},"name":"position_2d","ns":"heroku_jtr2jvms.Commerce"}],"uuid":"3f55ec53eb2c404384ce60d4e7b0b988"}
