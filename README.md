@@ -1,10 +1,14 @@
-# weeclick-parse-server
+# weeclick-parse-server using Node.JS
 
 ## [Lien vers le Parse-dashboard actuel](https://weeclik-dash.herokuapp.com/)
 
-Weeclik project using the [parse-server](https://github.com/ParsePlatform/parse-server) module on Express.
+Weeclik côté serveur utilise Node.JS avec le module : [parse-server](https://github.com/parse-community/parse-server) sur Express.
 
-Read the full Parse Server guide here: https://github.com/ParsePlatform/parse-server/wiki/Parse-Server-Guide
+La documentation de parse server : https://docs.parseplatform.org/parse-server/guide/
+
+Le module [parse-dashboard](https://github.com/parse-community/parse-dashboard) permet lui de visualiser et modifier les données de la BDD directement depuis un client web.
+
+La mise en place du dashboard : https://github.com/parse-community/parse-dashboard
 
 ### For Local Development
 
