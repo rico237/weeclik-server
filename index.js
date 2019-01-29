@@ -23,6 +23,12 @@ var dashboard = new ParseDashboard({
       "masterKey":  process.env.MASTER_KEY  || "fUjUmsCLjd6fmsUQwXXHZJhd",
       "appName":    process.env.APP_NAME    || "weeclik"
     }
+  ],
+  "users": [
+    {
+      "user":"adminUserWeeclik",
+      "pass":"JVQZMCuNYHsdqJ726B_NkCGvWFDTZa8A"
+    },
   ]
 }, options);
 
