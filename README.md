@@ -10,6 +10,10 @@ Le module [parse-dashboard](https://github.com/parse-community/parse-dashboard) 
 
 La mise en place du dashboard : https://github.com/parse-community/parse-dashboard
 
+
+La route /parse permet de fait les appels CRUD (Create, Read, Update, Delete)
+La route /dashboard permet d'afficher le dashboard
+
 ### For Local Development
 
 * Make sure you have at least Node 4.3. `node --version`
