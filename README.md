@@ -12,9 +12,9 @@ La route /dashboard permet d'afficher le dashboard
 La base de donnée est NoSQL avec [MongoDB](https://www.mongodb.com/), hebergé par [mLab](https://www.mlab.com/).    
 Un dump de la base de donnée se trouve dans le dossier BD à la racine.  
 
-Utiliser la commande pour importer le dump (fichier .bson) :
+Utiliser cette commande pour importer le dossier comportant les données de la bdd :
 ```
-mongorestore -h <url-site-mlab>:<port> -d <nom_bdd> -u <utilisateur_admin_bdd> -p <mot_de_passe> <fichier_bdd.bson>
+mongorestore -h <url-site-mlab>:<port> -d <nom_bdd> -u <utilisateur_admin_bdd> -p <mot_de_passe> <chemin_dossier/dump_bdd>
 ```
 
 La documentation de parse server : https://docs.parseplatform.org/parse-server/guide/
