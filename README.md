@@ -6,8 +6,9 @@ Weeclik côté serveur utilise Node.JS avec le module : [parse-server](https://g
 
 Il est actuellement hebergé sur des serveurs [Heroku](https://www.heroku.com/), qui est une solution d'hebergement Docker avec des addons gratuit axés sur la lourdeur des services.
 
-La base de donnée est NoSQL avec [MongoDB](https://www.mongodb.com/), hebergé par [mLab](https://www.mlab.com/)
-Un dump de la base de donnée se trouve dans le dossier BD à la racine.   
+La base de donnée est NoSQL avec [MongoDB](https://www.mongodb.com/), hebergé par [mLab](https://www.mlab.com/).    
+Un dump de la base de donnée se trouve dans le dossier BD à la racine.  
+
 Utiliser la commande pour importer le dump (fichier .bson) :
 ```
 mongorestore -h <url-site-mlab>:<port> -d <nom_bdd> -u <utilisateur_admin_bdd> -p <mot_de_passe> <fichier_bdd.bson>
