@@ -13,18 +13,18 @@ if (!databaseUri) {
     console.log('DATABASE_URI not specified, falling back to localhost.');
 }
 
-// var options = { allowInsecureHTTP: true };
+var options = { allowInsecureHTTP: true };
 
-// var dashboard = new ParseDashboard({
-//   "apps": [
-//     {
-//       "serverURL":  process.env.SERVER_URL  || "http://localhost:1337/parse",
-//       "appId":      process.env.APP_ID      || "JVQZMCuNYvnecPWvWFDTZa8A",
-//       "masterKey":  process.env.MASTER_KEY  || "fUjUmsCLjd6fmsUQwXXHZJhd",
-//       "appName":    process.env.APP_NAME    || "weeclik"
-//     }
-//   ]
-// }, options);
+var dashboard = new ParseDashboard({
+  "apps": [
+    {
+      "serverURL":  process.env.SERVER_URL  || "http://localhost:1337/parse",
+      "appId":      process.env.APP_ID      || "JVQZMCuNYvnecPWvWFDTZa8A",
+      "masterKey":  process.env.MASTER_KEY  || "fUjUmsCLjd6fmsUQwXXHZJhd",
+      "appName":    process.env.APP_NAME    || "weeclik"
+    }
+  ]
+}, options);
 
 var api = new ParseServer({
     databaseURI:        databaseUri                     || 'mongodb://localhost:27017/weeclik',
@@ -41,9 +41,9 @@ var api = new ParseServer({
             // The address that your emails come from
             fromAddress:    process.env.ADAPTER_FROM_ADDRESS    || 'weeclik@gmail.com',
             // Your domain from mailgun.com
-            domain:         process.env.ADAPTER_DOMAIN          || 'sandboxcc19bbb77ec54953ad48a98f389b194b.mailgun.org',
+            domain:         process.env.ADAPTER_DOMAIN          || '<domain>.mailgun.org',
             // Your API key from mailgun.com
-            apiKey:         process.env.ADAPTER_API_KEY         || 'key-31129f48122e8bae2d2b14628847763f',
+            apiKey:         process.env.ADAPTER_API_KEY         || 'key-<mailgun_API_key>',
         }
     },
     /*
@@ -64,12 +64,12 @@ var mountPath = process.env.PARSE_MOUNT || '/parse';
 app.use(mountPath, api);
 
 // make the Parse Dashboard available at /dashboard
-// app.use('/dashboard', dashboard);
+app.use('/dashboard', dashboard);
 
 // Parse Server plays nicely with the rest of your web routes
-/*app.get('/', function(req, res) {
+app.get('/', function(req, res) {
   res.status(200).send('I dream of being a website.  Please star the parse-server repo on GitHub!');
-});*/
+});
 
 // There will be a test page available on the /test path of your server url
 // Remove this before launching your app
