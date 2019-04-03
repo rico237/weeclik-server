@@ -34,7 +34,7 @@ var dashboard = new ParseDashboard({
 
 var api = new ParseServer({
     databaseURI:        databaseUri                     || 'mongodb://localhost:27017/weeclik',
-    cloud:              process.env.CLOUD_CODE_MAIN     || __dirname + '/cloud/main.js',
+    // cloud:              process.env.CLOUD_CODE_MAIN     || __dirname + '/cloud/main.js',
     appId:              process.env.APP_ID              || 'JVQZMCuNYvnecPWvWFDTZa8A',
     masterKey:          process.env.MASTER_KEY          || 'fUjUmsCLjd6fmsUQwXXHZJhd',          //Add your master key here. Keep it secret!
     serverURL:          process.env.SERVER_URL          || 'http://localhost:1337/parse',       // Don't forget to change to https if needed
