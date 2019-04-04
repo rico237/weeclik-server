@@ -11,8 +11,8 @@
   "dependencies": {
     "express": "^4.16.4",
     "kerberos": "~0.0.x",
-    "parse": "~1.8.0",
-    "parse-dashboard": "^1.2.0",
+    "parse": "~2.3.2",
+    "parse-dashboard": "^1.3.0",
     "parse-server": "*"
   },
   "scripts": {
