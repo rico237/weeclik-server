@@ -41,6 +41,7 @@ var api = new ParseServer({
     verifyUserEmails:   process.env.VERIFY_USER_EMAILS  || true,
     publicServerURL:    process.env.PUBLIC_URL          || 'http://localhost:1337/parse',
     appName:            process.env.APP_NAME            || 'Weeclik',
+    allowClientClassCreation: true,
     emailAdapter: {
         module: 'parse-server-simple-mailgun-adapter',
         options: {
