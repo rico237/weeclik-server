@@ -92,15 +92,16 @@ httpServer.listen(port, function() {
 });
 
 cron.schedule('* * * * *', () => {
-  const Commerce = Parse.Object.extend("Commerce");
-  const query = new Parse.Query(Commerce);
-  const results = await query.find();
-  console.log("Successfully retrieved " + results.length + " commerces.");
-  // Do something with the returned Parse.Object values
-  for (let i = 0; i < results.length; i++) {
-    let object = results[i];
-    console.log(object.id + ' - ' + object.get('nomCommerce'));
-  }
+  Parse.Cloud.run('retrieveAllObjects', {
+    object_type: "Commerce", 
+    only_objectId: false 
+  }).then(function(objects) {
+      console.log("Successfully retrieved " + objects.length + " commerces.");
+      for (let i = 0; i < results.length; i++) {
+        let object = results[i];
+        console.log(object.id + ' - ' + object.get('nomCommerce'));
+      }
+  });
 });
 
 // This will enable the Live Query real-time server
