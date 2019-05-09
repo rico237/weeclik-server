@@ -5,6 +5,7 @@ var express         = require('express');
 var ParseServer     = require('parse-server').ParseServer;
 var ParseDashboard  = require('parse-dashboard');
 var path            = require('path');
+const cron          = require('node-cron');
 var app             = express();
 
 var databaseUri = process.env.DATABASE_URI || process.env.MONGODB_URI;
@@ -88,6 +89,10 @@ var port = process.env.PORT || 1337;
 var httpServer = require('http').createServer(app);
 httpServer.listen(port, function() {
     console.log('parse-server-example running on port ' + port + '.');
+});
+
+cron.schedule('* * * * *', () => {
+  console.log('running a task every minute');
 });
 
 // This will enable the Live Query real-time server
