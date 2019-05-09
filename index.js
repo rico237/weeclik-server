@@ -91,27 +91,16 @@ httpServer.listen(port, function() {
     console.log('parse-server-example running on port ' + port + '.');
 });
 
-cron.schedule('*/2 * * * *', () => {
-  // const GameScore = Parse.Object.extend("Commerce");
-  // const query = new Parse.Query(GameScore);
-  // query.equalTo("playerName", "Dan Stemkoski");
-  // const results = await query.find();
-  // alert("Successfully retrieved " + results.length + " scores.");
-  // // Do something with the returned Parse.Object values
-  // for (let i = 0; i < results.length; i++) {
-  //   var object = results[i];
-  //   alert(object.id + ' - ' + object.get('playerName'));
-  // }
-
-  Parse.Cloud.run('retrieveAllObjects', {
-    object_type: "Commerce",
-    only_objectId: false 
-  }).then(function(objects) {
-      /* SUCCESS */
-      if (objects.length > 0) {
-        console.log(objects)
-      }
-  });
+cron.schedule('30 * * * * *', () => {
+  const Commerce = Parse.Object.extend("Commerce");
+  const query = new Parse.Query(GameScore);
+  const results = await query.find();
+  console.log("Successfully retrieved " + results.length + " commerces.");
+  // Do something with the returned Parse.Object values
+  for (let i = 0; i < results.length; i++) {
+    let object = results[i];
+    console.log(object.id + ' - ' + object.get('nomCommerce'));
+  }
 });
 
 // This will enable the Live Query real-time server
