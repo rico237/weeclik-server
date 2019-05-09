@@ -2,7 +2,7 @@ Parse.Cloud.beforeSave("Commerce", (request, response) => {
   	const description = request.object.get("description");
 	var bannedWords = [
 		"au", "un", "une", "à", "il", "elle", "mais", "où", "est", "donc", "or", "ni", "car", " ",
-		"de", "la", "et", "du", "aux", "le", "se", "fait", "avec", "en", "des", "pas", "deux", 
+		"de", "la", "et", "du", "aux", "le", "se", "fait", "avec", "en", "des", "pas", "deux", "\n",
 	];
 
 	var sorted = [];

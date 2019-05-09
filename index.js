@@ -6,7 +6,11 @@ var ParseServer     = require('parse-server').ParseServer;
 var ParseDashboard  = require('parse-dashboard');
 var path            = require('path');
 const cron          = require('node-cron');
+let moment          = require('moment');
 var app             = express();
+var Parse           = require('parse');
+
+moment().format();
 
 var databaseUri = process.env.DATABASE_URI || process.env.MONGODB_URI;
 
@@ -99,7 +103,16 @@ cron.schedule('* * * * *', () => {
       console.log("Successfully retrieved " + objects.length + " commerces.");
       for (let i = 0; i < results.length; i++) {
         let object = results[i];
-        console.log(object.id + ' - ' + object.get('nomCommerce'));
+        // console.log(object.id + ' - ' + object.get('nomCommerce'));
+        if (moment(object.get('endSubscription')).isValid()) {
+          let day =  moment(object.get('endSubscription'))
+          if (moment().isSameOrAfter(day)) {
+            console.log(object.get('nomCommerce') +  ' passed date')
+            object.set("statutCommerce", 0)
+            object.save()
+          }
+        }
+        
       }
   });
 });
