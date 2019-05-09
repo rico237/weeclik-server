@@ -10,6 +10,9 @@ let moment          = require('moment');
 var app             = express();
 var Parse           = require('parse');
 
+Parse.initialize(process.env.APP_ID || "JVQZMCuNYvnecPWvWFDTZa8A");
+Parse.serverURL = process.env.SERVER_URL  || "http://localhost:1337/parse";
+
 moment().format();
 
 var databaseUri = process.env.DATABASE_URI || process.env.MONGODB_URI;
