@@ -8,7 +8,7 @@ var path            = require('path');
 const cron          = require('node-cron');
 let moment          = require('moment');
 var app             = express();
-var Parse           = require('parse');
+var Parse           = require('parse/node');
 
 Parse.initialize(process.env.APP_ID || "JVQZMCuNYvnecPWvWFDTZa8A");
 Parse.serverURL = process.env.SERVER_URL  || "http://localhost:1337/parse";
