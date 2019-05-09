@@ -91,9 +91,9 @@ httpServer.listen(port, function() {
     console.log('parse-server-example running on port ' + port + '.');
 });
 
-cron.schedule('30 * * * * *', () => {
+cron.schedule('* * * * *', () => {
   const Commerce = Parse.Object.extend("Commerce");
-  const query = new Parse.Query(GameScore);
+  const query = new Parse.Query(Commerce);
   const results = await query.find();
   console.log("Successfully retrieved " + results.length + " commerces.");
   // Do something with the returned Parse.Object values
