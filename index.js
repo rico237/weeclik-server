@@ -104,8 +104,8 @@ cron.schedule('* * * * *', () => {
     only_objectId: false 
   }).then(function(objects) {
       console.log("Successfully retrieved " + objects.length + " commerces.");
-      for (let i = 0; i < results.length; i++) {
-        let object = results[i];
+      for (let i = 0; i < objects.length; i++) {
+        let object = objects[i];
         // console.log(object.id + ' - ' + object.get('nomCommerce'));
         if (moment(object.get('endSubscription')).isValid()) {
           let day =  moment(object.get('endSubscription'))
