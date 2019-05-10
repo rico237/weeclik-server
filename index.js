@@ -107,16 +107,16 @@ cron.schedule('* * * * *', () => {
       for (let i = 0; i < objects.length; i++) {
         let object = objects[i];
         // console.log(object.id + ' - ' + object.get('nomCommerce'));
-        console.log(object.get('endSubscription'))
-        if (moment(object.get('endSubscription')).isValid()) {
-          let day =  moment(object.get('endSubscription'))
-          if (moment().isSameOrAfter(day)) {
-            console.log(object.get('nomCommerce') +  ' passed date')
-            object.set("statutCommerce", 0)
-            object.save()
+        if (object.get('endSubscription') !== undefined) {
+          if (moment(object.get('endSubscription')).isValid()) {
+            let day =  moment(object.get('endSubscription'))
+            if (moment().isSameOrAfter(day)) {
+              console.log(object.get('nomCommerce') +  ' passed date')
+              object.set("statutCommerce", 0)
+              object.save()
+            }
           }
         }
-        
       }
   });
 });
