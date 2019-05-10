@@ -5,7 +5,15 @@ var express         = require('express');
 var ParseServer     = require('parse-server').ParseServer;
 var ParseDashboard  = require('parse-dashboard');
 var path            = require('path');
+const cron          = require('node-cron');
+let moment          = require('moment');
 var app             = express();
+var Parse           = require('parse/node');
+
+Parse.initialize(process.env.APP_ID || "JVQZMCuNYvnecPWvWFDTZa8A");
+Parse.serverURL = process.env.SERVER_URL  || "http://localhost:1337/parse";
+
+moment().format();
 
 var databaseUri = process.env.DATABASE_URI || process.env.MONGODB_URI;
 
@@ -89,6 +97,39 @@ var httpServer = require('http').createServer(app);
 httpServer.listen(port, function() {
     console.log('parse-server-example running on port ' + port + '.');
 });
+
+// Toute les heure à 0 minute
+// '* * 1 * *'
+cron.schedule('0 * * * *', () => {
+  console.log('tache chaque heure')
+  Parse.Cloud.run('retrieveAllObjects', {
+    object_type: "Commerce", 
+    only_objectId: false 
+  }).then(function(objects) {
+      console.log("Successfully retrieved " + objects.length + " commerces.");
+      for (let i = 0; i < objects.length; i++) {
+        let object = objects[i];
+        // console.log(object.id + ' - ' + object.get('nomCommerce'));
+        if (object.get('endSubscription') !== undefined) {
+          if (moment(object.get('endSubscription')).isValid()) {
+            let day =  moment(object.get('endSubscription'))
+            if (moment().isSameOrAfter(day)) {
+              console.log(object.get('nomCommerce') +  ' passed date')
+              object.set("statutCommerce", 0)
+              object.save()
+            }
+          }
+        }
+      }
+  });
+});
+
+ // cron.schedule('0 1 * * *', () => {
+ //   console.log('Runing a job at 01:00 at America/Sao_Paulo timezone');
+ // }, {
+ //   scheduled: true,
+ //   timezone: "America/Sao_Paulo"
+ // });
 
 // This will enable the Live Query real-time server
 //ParseServer.createLiveQueryServer(httpServer);
