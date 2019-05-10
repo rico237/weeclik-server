@@ -98,7 +98,10 @@ httpServer.listen(port, function() {
     console.log('parse-server-example running on port ' + port + '.');
 });
 
-cron.schedule('* * * * *', () => {
+// Toute les heure à 0 minute
+// '* * 1 * *'
+cron.schedule('0 * * * *', () => {
+  console.log('tache chaque heure')
   Parse.Cloud.run('retrieveAllObjects', {
     object_type: "Commerce", 
     only_objectId: false 
@@ -120,6 +123,13 @@ cron.schedule('* * * * *', () => {
       }
   });
 });
+
+ // cron.schedule('0 1 * * *', () => {
+ //   console.log('Runing a job at 01:00 at America/Sao_Paulo timezone');
+ // }, {
+ //   scheduled: true,
+ //   timezone: "America/Sao_Paulo"
+ // });
 
 // This will enable the Live Query real-time server
 //ParseServer.createLiveQueryServer(httpServer);
