@@ -1,30 +1,34 @@
 Parse.Cloud.beforeSave("Commerce", (request, response) => {
-  	const description = request.object.get("description");
-	var bannedWords = [
-		"au", "un", "une", "à", "il", "elle", "mais", "où", "est", "donc", "or", "ni", "car", " ",
-		"de", "la", "et", "du", "aux", "le", "se", "fait", "avec", "en", "des", "pas", "deux", "\n",
-	];
+    const description = request.object.get("description");
 
-	var sorted = [];
-	for (var i = 0; i < bannedWords.length; i++) {
-		var filtered = bannedWords[i].toLowerCase();
-	    sorted.push(filtered);
-	}
-	sorted.sort();
+    if (description !== undefined) {
+        var bannedWords = [
+        "au", "un", "une", "à", "il", "elle", "mais", "où", "est", "donc", "or", "ni", "car", " ",
+        "de", "la", "et", "du", "aux", "le", "se", "fait", "avec", "en", "des", "pas", "deux", "\n",
+        ];
 
-  	var hashtags = [];
+        var sorted = [];
+        for (var i = 0; i < bannedWords.length; i++) {
+            var filtered = bannedWords[i].toLowerCase();
+            sorted.push(filtered);
+        }
+        sorted.sort();
 
-	let res = description.split(" ");
+        var hashtags = [];
 
-	for (var i = 0; i < res.length; i++) {
-		let word = res[i].toLowerCase().replace(",","").replace(".", "");
-		if (!sorted.includes(word)) {
-			hashtags.push("#"+word);
-		}
-	}
+        let res = description.split(" ");
 
-  	request.object.set("tags", hashtags);
-  	response.success();
+        for (var i = 0; i < res.length; i++) {
+            let word = res[i].toLowerCase().replace(",","").replace(".", "");
+            if (!sorted.includes(word)) {
+                hashtags.push("#"+word);
+            }
+        }
+
+        request.object.set("tags", hashtags);
+    }
+
+    response.success();
 });
 
 Parse.Cloud.define("retrieveAllObjects", function(request, status) {

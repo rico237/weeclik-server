@@ -99,9 +99,10 @@ httpServer.listen(port, function() {
 });
 
 // Toute les heure à 0 minute
-// '* * 1 * *'
-cron.schedule('0 * * * *', () => {
-  console.log('tache chaque heure')
+// '* * 1 * *' tous les mois ?
+// '0 * * * *'
+cron.schedule('* * * * *', () => {
+  // console.log('tache chaque heure')
   Parse.Cloud.run('retrieveAllObjects', {
     object_type: "Commerce", 
     only_objectId: false 
