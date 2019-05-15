@@ -100,8 +100,8 @@ httpServer.listen(port, function() {
 
 // Toute les heure à 0 minute
 // '* * 1 * *' tous les mois ?
-// '0 * * * *'
-cron.schedule('* * * * *', () => {
+// '* * * * *'
+cron.schedule('0 * * * *', () => {
   // console.log('tache chaque heure')
   Parse.Cloud.run('retrieveAllObjects', {
     object_type: "Commerce", 
@@ -110,7 +110,6 @@ cron.schedule('* * * * *', () => {
       console.log("Successfully retrieved " + objects.length + " commerces.");
       for (let i = 0; i < objects.length; i++) {
         let object = objects[i];
-        // console.log(object.id + ' - ' + object.get('nomCommerce'));
         if (object.get('endSubscription') !== undefined) {
           if (moment(object.get('endSubscription')).isValid()) {
             let day =  moment(object.get('endSubscription'))
