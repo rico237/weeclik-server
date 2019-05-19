@@ -98,6 +98,14 @@ httpServer.listen(port, function() {
     console.log('parse-server-example running on port ' + port + '.');
 });
 
+app.get('/cgu/', (req, res) => {
+  return res.send(200).send('cgu')
+})
+
+app.get('/politique-confidentialite/', (req, res) => {
+  return res.send(200).send('politique-confidentialite')
+})
+
 // Toute les heure à 0 minute
 // '* * 1 * *' tous les mois ?
 // '* * * * *'
