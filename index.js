@@ -174,6 +174,14 @@ cron.schedule('0 * * * *', () => {
   });
 });
 
+app.get('/cgu/', (req, res) => {
+  return res.send(200).send('cgu')
+})
+
+app.get('/politique-confidentialite/', (req, res) => {
+  return res.send(200).send('politique-confidentialite')
+})
+
 app.get('/valid_email/:email', (req, res) => {
   console.log(`Test address mail valid : ${req.params.email}`)
   let validator = require('mailgun-validate-email')('pubkey-82c8349ca08cef77e75a82a241b56500')
