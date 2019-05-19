@@ -1,4 +1,4 @@
-Parse.Cloud.beforeSave("Commerce", (request, response) => {
+Parse.Cloud.beforeSave("Commerce", (request) => {
     const description = request.object.get("description");
 
     if (description !== undefined) {
@@ -27,14 +27,12 @@ Parse.Cloud.beforeSave("Commerce", (request, response) => {
 
         request.object.set("tags", hashtags);
     }
-
-    response.success();
 });
 
-Parse.Cloud.define("retrieveAllObjects", function(request, status) {
+Parse.Cloud.define("retrieveAllObjects", (request, status) => {
     var result     = [];
     var chunk_size = 1000;
-    var processCallback = function(res) {
+    var processCallback = (res) => {
         result = result.concat(res);
         if (res.length === chunk_size) {
             process(res[res.length-1].id);
@@ -42,7 +40,7 @@ Parse.Cloud.define("retrieveAllObjects", function(request, status) {
             status.success(result);
         }
     };
-    var process = function(skip) {
+    var process = (skip) => {
         var query = new Parse.Query(request.params.object_type);
         if (skip) {
             query.greaterThan("objectId", skip);
@@ -55,11 +53,38 @@ Parse.Cloud.define("retrieveAllObjects", function(request, status) {
         }
         query.limit(chunk_size);
         query.ascending("objectId");
-        query.find().then(function (res) {
+        query.find().then((res) => {
             processCallback(res);
-        }, function (error) {
+        }, (error) => {
             status.error("query unsuccessful, length of result " + result.length + ", error:" + error.code + " " + error.message);
         });
     };
     process(false);
+});
+
+Parse.Cloud.define("sendOutdatedEmail", async (request) => {
+  // Get access to Parse Server's cache
+    const { AppCache } = require('parse-server/lib/cache');
+    // Get a reference to the MailgunAdapter
+    // NOTE: It's best to do this inside the Parse.Cloud.define(...) method body and not at the top of your file with your other imports. This gives Parse Server time to boot, setup cloud code and the email adapter.
+    const MailgunAdapter = AppCache.get('JVQZMCuNYvnecPWvWFDTZa8A').userController.adapter;
+
+    // request.params.update_at
+
+    // Invoke the send method with an options object
+    MailgunAdapter.send({
+      templateName: 'customEmailAlert',
+      // Optional override of your configuration's subject
+      subject: 'Important: action required',
+      // Optional override of the adapter's fromAddress
+      fromAddress: 'Alerts <noreply@yourapp.com>',
+      recipient: 'user@email.com',
+      variables: { alert: 'New posts' }, // {{alert}} will be compiled to 'New posts'
+      // Additional message fields can be included with the "extra" option
+      // See https://nodemailer.com/extras/mailcomposer/#e-mail-message-fields for an overview of what can be included
+      extra: {
+        attachments: [], /* include attachment objects */
+        replyTo: 'reply-to-address'
+      }
+    });
 });
