@@ -7,7 +7,9 @@ let moment          = require('moment');
 let app             = express();
 let Parse           = require('parse/node');
 const resolve       = require('path').resolve;
-let GCSAdapter = require('@parse/gcs-files-adapter');
+var MigratingAdapter = require('parse-server-migrating-adapter')
+var GridStoreAdapter = require('parse-server/lib/Adapters/Files/GridStoreAdapter').GridStoreAdapter
+let GCSAdapter      = require('@parse/gcs-files-adapter');
 
 Parse.initialize(process.env.APP_ID || "JVQZMCuNYvnecPWvWFDTZa8A");
 Parse.serverURL = process.env.SERVER_URL  || "http://localhost:1337/parse";
@@ -18,6 +20,7 @@ let databaseUri = process.env.DATABASE_URI || process.env.MONGODB_URI;
 
 if (!databaseUri) { 
   console.log('DATABASE_URI not specified, falling back to localhost.');
+  databaseUri = 'mongodb://localhost:27017/weeclik'
 }
 
 let options = { allowInsecureHTTP: true };
@@ -45,13 +48,14 @@ let gcsOptions = {
   "directAccess": false
 }
 let gcsAdapter = new GCSAdapter(gcsOptions);
+let fileAdapter = new MigratingAdapter(gcsAdapter, [new GridStoreAdapter(process.env.DATABASE_URI)])
 
 let api = new ParseServer({
-  databaseURI:        databaseUri                     || 'mongodb://localhost:27017/weeclik',
+  databaseURI:        databaseUri,
   cloud:              process.env.CLOUD_CODE_MAIN     || __dirname + '/cloud/main.js',
   appId:              process.env.APP_ID              || 'JVQZMCuNYvnecPWvWFDTZa8A',
   masterKey:          process.env.MASTER_KEY          || 'fUjUmsCLjd6fmsUQwXXHZJhd',          //Add your master key here. Keep it secret!
-  filesAdapter:       gcsAdapter,
+  filesAdapter:       fileAdapter,
   serverURL:          process.env.SERVER_URL          || 'http://localhost:1337/parse',       // Don't forget to change to https if needed
   verifyUserEmails:   process.env.VERIFY_USER_EMAILS  || true,
   publicServerURL:    process.env.PUBLIC_URL          || 'http://localhost:1337/parse',
@@ -127,7 +131,7 @@ liveQuery: {
 // javascriptKey, restAPIKey, dotNetKey, clientKey
 
 // Serve static assets from the /public folder
-//app.use('/public', express.static(path.join(__dirname, '/public')));
+app.use('/public', express.static(path.join(__dirname, '/public')));
 
 // Serve the Parse API on the /parse URL prefix
 let mountPath = process.env.PARSE_MOUNT || '/parse';
@@ -135,11 +139,6 @@ app.use(mountPath, api);
 
 // make the Parse Dashboard available at /dashboard
 app.use('/dashboard', dashboard);
-
-// Parse Server plays nicely with the rest of your web routes
-// app.get('/', function(req, res) {
-//   res.status(200).send('I dream of being a website.  Please star the parse-server repo on GitHub!');
-// });
 
 let port = process.env.PORT || 1337;
 let httpServer = require('http').createServer(app);
@@ -175,11 +174,11 @@ cron.schedule('0 * * * *', () => {
 });
 
 app.get('/cgu/', (req, res) => {
-  return res.send(200).send('cgu')
+  return res.status(200).send('cgu')
 })
 
 app.get('/politique-confidentialite/', (req, res) => {
-  return res.send(200).send('politique-confidentialite')
+  return res.status(200).send('politique-confidentialite')
 })
 
 app.get('/valid_email/:email', (req, res) => {
