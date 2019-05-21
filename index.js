@@ -7,8 +7,6 @@ let moment          = require('moment');
 let app             = express();
 let Parse           = require('parse/node');
 const resolve       = require('path').resolve;
-var MigratingAdapter = require('parse-server-migrating-adapter')
-var GridStoreAdapter = require('parse-server/lib/Adapters/Files/GridStoreAdapter').GridStoreAdapter
 let GCSAdapter      = require('@parse/gcs-files-adapter');
 
 Parse.initialize(process.env.APP_ID || "JVQZMCuNYvnecPWvWFDTZa8A");
@@ -48,14 +46,13 @@ let gcsOptions = {
   "directAccess": false
 }
 let gcsAdapter = new GCSAdapter(gcsOptions);
-let fileAdapter = new MigratingAdapter(gcsAdapter, [new GridStoreAdapter(process.env.DATABASE_URI)])
 
 let api = new ParseServer({
   databaseURI:        databaseUri,
   cloud:              process.env.CLOUD_CODE_MAIN     || __dirname + '/cloud/main.js',
   appId:              process.env.APP_ID              || 'JVQZMCuNYvnecPWvWFDTZa8A',
   masterKey:          process.env.MASTER_KEY          || 'fUjUmsCLjd6fmsUQwXXHZJhd',          //Add your master key here. Keep it secret!
-  filesAdapter:       fileAdapter,
+  filesAdapter:       gcsAdapter,
   serverURL:          process.env.SERVER_URL          || 'http://localhost:1337/parse',       // Don't forget to change to https if needed
   verifyUserEmails:   process.env.VERIFY_USER_EMAILS  || true,
   publicServerURL:    process.env.PUBLIC_URL          || 'http://localhost:1337/parse',
