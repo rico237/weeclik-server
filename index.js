@@ -72,7 +72,7 @@ var api = new ParseServer({
 // javascriptKey, restAPIKey, dotNetKey, clientKey
 
 // Serve static assets from the /public folder
-//app.use('/public', express.static(path.join(__dirname, '/public')));
+app.use('/public', express.static(path.join(__dirname, '/public')));
 
 // Serve the Parse API on the /parse URL prefix
 var mountPath = process.env.PARSE_MOUNT || '/parse';
@@ -99,11 +99,11 @@ httpServer.listen(port, function() {
 });
 
 app.get('/cgu/', (req, res) => {
-  return res.send(200).send('cgu')
+  res.status(200).send('cgu')
 })
 
 app.get('/politique-confidentialite/', (req, res) => {
-  return res.send(200).send('politique-confidentialite')
+  res.status(200).send('politique-confidentialite')
 })
 
 // Toute les heure à 0 minute
