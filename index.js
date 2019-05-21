@@ -77,7 +77,7 @@ let api = new ParseServer({
       templates: {
         passwordResetEmail: {
           subject: 'Reset your password',
-          pathPlainText: resolve(__dirname, 'custom_email/password_reset/password_reset_email.txt'),
+          pathPlainText: './custom_email/password_reset/password_reset_email.txt',
           pathHtml: resolve(__dirname, 'custom_email/password_reset/password_reset_email.html'),
           callback: (user) => { return { 
             name: user.get('name') 
