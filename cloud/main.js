@@ -1,3 +1,7 @@
+
+// TODO: After save on video to generate video thumbnail & description as 'video presentation {{ nom_du_commerce }}'
+// TODO: Devide cloud code into multiple controller class, like Commerce.js (before, after and webhooks)
+
 Parse.Cloud.beforeSave("Commerce", (request) => {
     const description = request.object.get("description");
 
