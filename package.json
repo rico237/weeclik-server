@@ -26,6 +26,7 @@
     "start": "node index.js"
   },
   "engines": {
-    "node": "10.14.2"
+    "node": "8.16.0",
+    "npm" : "6.4.1"
   }
 }

@@ -52,7 +52,7 @@ let api = new ParseServer({
   cloud:              process.env.CLOUD_CODE_MAIN     || __dirname + '/cloud/main.js',
   appId:              process.env.APP_ID              || 'JVQZMCuNYvnecPWvWFDTZa8A',
   masterKey:          process.env.MASTER_KEY          || 'fUjUmsCLjd6fmsUQwXXHZJhd',          //Add your master key here. Keep it secret!
-  filesAdapter:       gcsAdapter,
+  // filesAdapter:       gcsAdapter,
   serverURL:          process.env.SERVER_URL          || 'http://localhost:1337/parse',       // Don't forget to change to https if needed
   verifyUserEmails:   process.env.VERIFY_USER_EMAILS  || true,
   publicServerURL:    process.env.PUBLIC_URL          || 'http://localhost:1337/parse',
@@ -67,12 +67,12 @@ let api = new ParseServer({
       // The address that your emails come from
       fromAddress: 'Herrick de l\'équipe Weeclik <contact@herrick-wolber.fr>',
       // Your domain from mailgun.com
-      domain: process.env.ADAPTER_DOMAIN          || '',
+      domain: process.env.ADAPTER_DOMAIN          || 'email.herrick-wolber.fr',
       // Mailgun host (default: 'api.mailgun.net'). 
       // When using the EU region, the host should be set to 'api.eu.mailgun.net'
       host: 'api.eu.mailgun.net',
       // Your API key from mailgun.com
-      apiKey: process.env.ADAPTER_API_KEY         || '',
+      apiKey: process.env.ADAPTER_API_KEY         || 'key-31129f48122e8bae2d2b14628847763f',
       // The template section
       templates: {
         passwordResetEmail: {
@@ -126,6 +126,14 @@ let httpServer = require('http').createServer(app);
 httpServer.listen(port, function() {
   console.log('parse-server-example running on port ' + port + '.');
 });
+
+app.get('/cgu/', (req, res) => {
+  res.status(200).send('cgu')
+})
+
+app.get('/politique-confidentialite/', (req, res) => {
+  res.status(200).send('politique-confidentialite')
+})
 
 // Toute les heure à 0 minute
 // '* * 1 * *' tous les mois ?

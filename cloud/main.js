@@ -4,6 +4,7 @@
 
 Parse.Cloud.beforeSave("Commerce", (request) => {
     const description = request.object.get("description");
+    const brouillon   = request.object.get("brouillon");
 
     if (description !== undefined) {
         var bannedWords = [
@@ -31,6 +32,12 @@ Parse.Cloud.beforeSave("Commerce", (request) => {
 
         request.object.set("tags", hashtags);
     }
+
+    if (brouillon === undefined || brouillon == null) {
+        request.object.set("brouillon", true);
+    }
+
+    response.success();
 });
 
 Parse.Cloud.define("retrieveAllObjects", (request, status) => {
