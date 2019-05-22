@@ -65,7 +65,7 @@ let api = new ParseServer({
     module: 'parse-server-mailgun',
     options: {
       // The address that your emails come from
-      fromAddress: 'Herrick de l\'équipe Weeclik <weeclik@gmail.comv>',
+      fromAddress: 'Herrick de l\'équipe Weeclik <contact@herrick-wolber.fr>',
       // Your domain from mailgun.com
       domain: process.env.ADAPTER_DOMAIN          || 'sandboxcc19bbb77ec54953ad48a98f389b194b.mailgun.org',
       // Mailgun host (default: 'api.mailgun.net'). 
@@ -104,23 +104,7 @@ let api = new ParseServer({
         }
       }
     }
-  },
- /*emailAdapter: {
-    module: 'parse-server-simple-mailgun-adapter',
-    options: {
-        // The address that your emails come from
-        fromAddress:    process.env.ADAPTER_FROM_ADDRESS    || 'weeclik@gmail.com',
-        // Your domain from mailgun.com
-        domain:         process.env.ADAPTER_DOMAIN          || '<domain>.mailgun.org',
-        // Your API key from mailgun.com
-        apiKey:         process.env.ADAPTER_API_KEY         || 'key-<mailgun_API_key>',
-    }
-  },*/
-/*
-liveQuery: {
-    classNames: ["Posts", "Comments"] // List of classes to support for query subscriptions
-}
-*/
+  }
 });
 
 // Client-keys like the javascript key or the .NET key are not necessary with parse-server
@@ -198,6 +182,3 @@ app.get('/valid_email/:email', (req, res) => {
     }
   })
 });
-
-// This will enable the Live Query real-time server
-//ParseServer.createLiveQueryServer(httpServer);
