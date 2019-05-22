@@ -67,12 +67,12 @@ let api = new ParseServer({
       // The address that your emails come from
       fromAddress: 'Herrick de l\'équipe Weeclik <contact@herrick-wolber.fr>',
       // Your domain from mailgun.com
-      domain: process.env.ADAPTER_DOMAIN          || 'sandboxcc19bbb77ec54953ad48a98f389b194b.mailgun.org',
+      domain: process.env.ADAPTER_DOMAIN          || '',
       // Mailgun host (default: 'api.mailgun.net'). 
       // When using the EU region, the host should be set to 'api.eu.mailgun.net'
-      host: 'smtp.mailgun.org',
+      host: 'api.eu.mailgun.net',
       // Your API key from mailgun.com
-      apiKey: process.env.ADAPTER_API_KEY         || 'key-31129f48122e8bae2d2b14628847763f',
+      apiKey: process.env.ADAPTER_API_KEY         || '',
       // The template section
       templates: {
         passwordResetEmail: {
