@@ -77,8 +77,8 @@ let api = new ParseServer({
       templates: {
         passwordResetEmail: {
           subject: 'Reset your password',
-          pathPlainText: './custom_email/password_reset/password_reset_email.txt',
-          pathHtml: resolve(__dirname, 'custom_email/password_reset/password_reset_email.html'),
+          pathPlainText: resolve(__dirname, 'email_templates/password_reset/password_reset_email.txt'),
+          pathHtml: resolve(__dirname, 'email_templates/password_reset/password_reset_email.html'),
           callback: (user) => { return { 
             name: user.get('name') 
           }}
@@ -86,8 +86,8 @@ let api = new ParseServer({
         },
         verificationEmail: {
           subject: 'Confirm your account',
-          pathPlainText: resolve(__dirname, 'custom_email/verification_email/verification_email.txt'),
-          pathHtml: resolve(__dirname, 'custom_email/verification_email/verification_email.html'),
+          pathPlainText: resolve(__dirname, 'email_templates/verification_email/verification_email.txt'),
+          pathHtml: resolve(__dirname, 'email_templates/verification_email/verification_email.html'),
           callback: (user) => { return { 
             name: user.get('name') 
           }}
@@ -95,8 +95,8 @@ let api = new ParseServer({
         },
         customEmailAlert: {
           subject: 'Urgent notification!',
-          pathPlainText: resolve(__dirname, 'custom_email/custom_email.txt'),
-          pathHtml: resolve(__dirname, 'custom_email/custom_email.html'),
+          pathPlainText: resolve(__dirname, 'email_templates/custom_email/custom_email.txt'),
+          pathHtml: resolve(__dirname, 'email_templates/custom_email/custom_email.html'),
           callback: (user) => { return { 
             name: user.get('name') 
           }}
