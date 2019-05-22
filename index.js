@@ -60,7 +60,7 @@ let api = new ParseServer({
   allowClientClassCreation: true,
   // Enable email verification
   // try to use this (avantage langue) // "@ngti/parse-server-mailgun": "^2.4.18",
-  verifyUserEmails: true,
+  verifyUserEmails: process.env.VERIFY_USER_EMAILS || true,
   emailAdapter: {
     module: 'parse-server-mailgun',
     options: {
@@ -70,9 +70,9 @@ let api = new ParseServer({
       domain: process.env.ADAPTER_DOMAIN          || 'sandboxcc19bbb77ec54953ad48a98f389b194b.mailgun.org',
       // Mailgun host (default: 'api.mailgun.net'). 
       // When using the EU region, the host should be set to 'api.eu.mailgun.net'
-      host: 'api.eu.mailgun.net',
+      host: 'smtp.mailgun.org',
       // Your API key from mailgun.com
-      apiKey: process.env.ADAPTER_API_KEY         || 'pubkey-82c8349ca08cef77e75a82a241b56500',
+      apiKey: process.env.ADAPTER_API_KEY         || 'key-31129f48122e8bae2d2b14628847763f',
       // The template section
       templates: {
         passwordResetEmail: {
