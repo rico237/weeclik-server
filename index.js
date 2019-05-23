@@ -52,7 +52,7 @@ let api = new ParseServer({
   cloud:              process.env.CLOUD_CODE_MAIN     || __dirname + '/cloud/main.js',
   appId:              process.env.APP_ID              || 'JVQZMCuNYvnecPWvWFDTZa8A',
   masterKey:          process.env.MASTER_KEY          || 'fUjUmsCLjd6fmsUQwXXHZJhd',          //Add your master key here. Keep it secret!
-  // filesAdapter:       gcsAdapter,
+  filesAdapter:       gcsAdapter,
   serverURL:          process.env.SERVER_URL          || 'http://localhost:1337/parse',       // Don't forget to change to https if needed
   verifyUserEmails:   process.env.VERIFY_USER_EMAILS  || true,
   publicServerURL:    process.env.PUBLIC_URL          || 'http://localhost:1337/parse',
