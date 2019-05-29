@@ -6,7 +6,7 @@ Parse.Cloud.beforeSave("Commerce", async (request) => {
     const description = request.object.get("description");
     const brouillon   = request.object.get("brouillon");
 
-    if (description !== undefined) {
+    if (description !== undefined || description !== "") {
         var bannedWords = [
         "au", "un", "une", "à", "il", "elle", "mais", "où", "est", "donc", "or", "ni", "car", " ",
         "de", "la", "et", "du", "aux", "le", "se", "fait", "avec", "en", "des", "pas", "deux", "\n",
