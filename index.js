@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 let express         = require('express');
 let ParseServer     = require('parse-server').ParseServer;
 let ParseDashboard  = require('parse-dashboard');
@@ -7,10 +9,19 @@ let moment          = require('moment');
 let app             = express();
 let Parse           = require('parse/node');
 const resolve       = require('path').resolve;
+const createError   = require('http-errors'); // Gestion des erreurs
+const bodyParser    = require('body-parser'); // Parse incoming request bodies
 let GCSAdapter      = require('@parse/gcs-files-adapter');
+let mailgun         = require('mailgun-js')({apiKey: process.env.ADAPTER_API_KEY, domain: process.env.ADAPTER_DOMAIN, host: 'api.eu.mailgun.net'});
 
-Parse.initialize(process.env.APP_ID || "JVQZMCuNYvnecPWvWFDTZa8A");
-Parse.serverURL = process.env.SERVER_URL  || "http://localhost:1337/parse";
+Parse.initialize(process.env.APP_ID);
+Parse.serverURL = process.env.SERVER_URL;
+
+// Configuration Server                                       
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.text());
+app.use(bodyParser.json({ type: 'application/json' }));
 
 moment().format();
 
@@ -18,7 +29,6 @@ let databaseUri = process.env.DATABASE_URI || process.env.MONGODB_URI;
 
 if (!databaseUri) { 
   console.log('DATABASE_URI not specified, falling back to localhost.');
-  databaseUri = 'mongodb://localhost:27017/weeclik'
 }
 
 let options = { allowInsecureHTTP: true };
@@ -26,10 +36,10 @@ let options = { allowInsecureHTTP: true };
 let dashboard = new ParseDashboard({
   "apps": [
   {
-    "serverURL":  process.env.SERVER_URL  || "http://localhost:1337/parse",
-    "appId":      process.env.APP_ID      || "JVQZMCuNYvnecPWvWFDTZa8A",
-    "masterKey":  process.env.MASTER_KEY  || "fUjUmsCLjd6fmsUQwXXHZJhd",
-    "appName":    process.env.APP_NAME    || "weeclik"
+    "serverURL":  process.env.SERVER_URL,
+    "appId":      process.env.APP_ID,
+    "masterKey":  process.env.MASTER_KEY,
+    "appName":    process.env.APP_NAME
   }],
   "users": [
   {
@@ -50,13 +60,12 @@ let gcsAdapter = new GCSAdapter(gcsOptions);
 let api = new ParseServer({
   databaseURI:        databaseUri,
   cloud:              process.env.CLOUD_CODE_MAIN     || __dirname + '/cloud/main.js',
-  appId:              process.env.APP_ID              || 'JVQZMCuNYvnecPWvWFDTZa8A',
-  masterKey:          process.env.MASTER_KEY          || 'fUjUmsCLjd6fmsUQwXXHZJhd',          //Add your master key here. Keep it secret!
+  appId:              process.env.APP_ID,
+  masterKey:          process.env.MASTER_KEY,
   filesAdapter:       gcsAdapter,
-  serverURL:          process.env.SERVER_URL          || 'http://localhost:1337/parse',       // Don't forget to change to https if needed
-  verifyUserEmails:   process.env.VERIFY_USER_EMAILS  || true,
-  publicServerURL:    process.env.PUBLIC_URL          || 'http://localhost:1337/parse',
-  appName:            process.env.APP_NAME            || 'Weeclik',
+  serverURL:          process.env.SERVER_URL,
+  publicServerURL:    process.env.PUBLIC_URL,
+  appName:            process.env.APP_NAME,
   allowClientClassCreation: true,
   // Enable email verification
   // try to use this (avantage langue) // "@ngti/parse-server-mailgun": "^2.4.18",
@@ -67,12 +76,12 @@ let api = new ParseServer({
       // The address that your emails come from
       fromAddress: 'Herrick de l\'équipe Weeclik <contact@herrick-wolber.fr>',
       // Your domain from mailgun.com
-      domain: process.env.ADAPTER_DOMAIN          || 'email.herrick-wolber.fr',
+      domain: process.env.ADAPTER_DOMAIN,
       // Mailgun host (default: 'api.mailgun.net'). 
       // When using the EU region, the host should be set to 'api.eu.mailgun.net'
       host: 'api.eu.mailgun.net',
       // Your API key from mailgun.com
-      apiKey: process.env.ADAPTER_API_KEY         || 'key-31129f48122e8bae2d2b14628847763f',
+      apiKey: process.env.ADAPTER_API_KEY,
       // The template section
       templates: {
         passwordResetEmail: {
@@ -115,7 +124,7 @@ let api = new ParseServer({
 app.use('/public', express.static(path.join(__dirname, '/public')));
 
 // Serve the Parse API on the /parse URL prefix
-let mountPath = process.env.PARSE_MOUNT || '/parse';
+let mountPath = process.env.PARSE_MOUNT;
 app.use(mountPath, api);
 
 // make the Parse Dashboard available at /dashboard
@@ -170,19 +179,51 @@ app.get('/politique-confidentialite/', (req, res) => {
   return res.status(200).send('politique-confidentialite')
 })
 
+app.post('/send-error-mail', (req, res) => {
+  console.log(req.body);
+  if (req.body.content_message) {
+    const data = {
+      from: 'iOS APP <no-reply@weeclik.com>',
+      to: 'contact@herrick-wolber.fr',
+      subject: 'Error in iOS App',
+      text: req.body.content_message
+    };
+
+    mailgun.messages().send(data, (error, body) => {
+      if (error) {
+        return error
+      } else {
+        return res.status(200).send({
+        success: 'true',
+        message: 'Message envoyé avec succès',
+      });
+      }
+      console.log(body);
+      
+    });
+  } else {
+
+    return res.status(422).send({
+      success: 'false',
+      message: 'Missing parameter : Content',
+    })
+  }
+})
+
 app.get('/valid_email/:email', (req, res) => {
   console.log(`Test address mail valid : ${req.params.email}`)
+  // TODO: change
   let validator = require('mailgun-validate-email')('pubkey-82c8349ca08cef77e75a82a241b56500')
   validator(req.params.email, (err, result) => {
     if(err) {
       // TODO : Send Mail to admin for errors
       // email was not valid
-      return res.statuts(400).send({
+      return res.status(400).send({
         success: 'false',
         message: 'Invalid mail or server error. Please contact admin fast.',
       })
     } else {
-      // TODO: send admin email for high or medium risk emailss
+      // TODO: send admin email for high or medium risk email
       return res.status(200).send({
         success: 'true',
         message: result,
