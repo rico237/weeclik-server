@@ -1,4 +1,4 @@
-require('dotenv').config()
+require('dotenv').config({ debug: process.env.DEBUG })
 
 let express         = require('express');
 let ParseServer     = require('parse-server').ParseServer;
@@ -56,6 +56,8 @@ let gcsOptions = {
   "directAccess": false
 }
 let gcsAdapter = new GCSAdapter(gcsOptions);
+
+console.log(process.env.MASTER_KEY)
 
 let api = new ParseServer({
   databaseURI:        databaseUri,
