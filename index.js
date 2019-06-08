@@ -17,10 +17,7 @@ let mailgun         = require('mailgun-js')({apiKey: process.env.ADAPTER_API_KEY
 Parse.initialize(process.env.APP_ID);
 Parse.serverURL = process.env.SERVER_URL;
 
-// Configuration Server                                       
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.text());
+// Configuration Server
 app.use(bodyParser.json({ type: 'application/json' }));
 
 moment().format();
@@ -39,8 +36,11 @@ let dashboard = new ParseDashboard({
     "serverURL":  process.env.SERVER_URL,
     "appId":      process.env.APP_ID,
     "masterKey":  process.env.MASTER_KEY,
-    "appName":    process.env.APP_NAME
+    "appName":    process.env.APP_NAME,
+    "iconName": "logo.png",
+    "supportedPushLocales": ["fr"]
   }],
+  "iconsFolder": "icons",
   "users": [
   {
     "user":"adminUserWeeclik",
@@ -204,10 +204,10 @@ app.post('/send-error-mail', (req, res) => {
       
     });
   } else {
-
+    // TODO: rajouter un test sur le type d'erreur et retourner le bon type d'erreur
     return res.status(422).send({
       success: 'false',
-      message: 'Missing parameter : Content',
+      message: 'Missing parameter : content_message is undefined',
     })
   }
 })
@@ -220,6 +220,7 @@ app.get('/valid_email/:email', (req, res) => {
     if(err) {
       // TODO : Send Mail to admin for errors
       // email was not valid
+      // TODO: rajouter un test sur le type d'erreur et retourner le bon type d'erreur
       return res.status(400).send({
         success: 'false',
         message: 'Invalid mail or server error. Please contact admin fast.',
