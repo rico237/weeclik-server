@@ -43,8 +43,8 @@ let dashboard = new ParseDashboard({
   "iconsFolder": "icons",
   "users": [
   {
-    "user":"adminUserWeeclik",
-    "pass":"JVQZMCuNYHsdqJ726B_NkCGvWFDTZa8A"
+    "user":process.env.ADMIN_USER,
+    "pass":process.env.ADMMIN_PASSWORD
   }]
 }, options);
 
@@ -135,7 +135,7 @@ app.use('/dashboard', dashboard);
 let port = process.env.PORT || 1337;
 let httpServer = require('http').createServer(app);
 httpServer.listen(port, function() {
-  console.log('parse-server-example running on port ' + port + '.');
+  console.log('Running weekclik server on port ' + port);
 });
 
 app.get('/cgu/', (req, res) => {
@@ -215,7 +215,7 @@ app.post('/send-error-mail', (req, res) => {
 app.get('/valid_email/:email', (req, res) => {
   console.log(`Test address mail valid : ${req.params.email}`)
   // TODO: change
-  let validator = require('mailgun-validate-email')('pubkey-82c8349ca08cef77e75a82a241b56500')
+  let validator = require('mailgun-validate-email')(process.env.MAILGUN_PUBKEY)
   validator(req.params.email, (err, result) => {
     if(err) {
       // TODO : Send Mail to admin for errors
