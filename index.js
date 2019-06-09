@@ -43,8 +43,8 @@ let dashboard = new ParseDashboard({
   "iconsFolder": "icons",
   "users": [
   {
-    "user":process.env.ADMIN_USER,
-    "pass":process.env.ADMMIN_PASSWORD
+    "user": process.env.ADMIN_USER,
+    "pass": process.env.ADMIN_PASSWORD
   }]
 }, options);
 
