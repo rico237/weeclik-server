@@ -87,7 +87,7 @@ let api = new ParseServer({
       // The template section
       templates: {
         passwordResetEmail: {
-          subject: 'Reset your password',
+          subject: 'Mot de passe oublié ?',
           pathPlainText: resolve(__dirname, 'email_templates/password_reset/password_reset_email.txt'),
           pathHtml: resolve(__dirname, 'email_templates/password_reset/password_reset_email.html'),
           callback: (user) => { return { 
@@ -96,7 +96,7 @@ let api = new ParseServer({
           // Now you can use {{name}} in your templates
         },
         verificationEmail: {
-          subject: 'Confirm your account',
+          subject: 'Bienvenue dans la famille Weeclik',
           pathPlainText: resolve(__dirname, 'email_templates/verification_email/verification_email.txt'),
           pathHtml: resolve(__dirname, 'email_templates/verification_email/verification_email.html'),
           callback: (user) => { return { 
@@ -105,7 +105,7 @@ let api = new ParseServer({
           // Now you can use {{name}} in your templates
         },
         customEmailAlert: {
-          subject: 'Urgent notification!',
+          subject: 'Message urgent',
           pathPlainText: resolve(__dirname, 'email_templates/custom_email/custom_email.txt'),
           pathHtml: resolve(__dirname, 'email_templates/custom_email/custom_email.html'),
           callback: (user) => { return { 
