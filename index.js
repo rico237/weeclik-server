@@ -53,7 +53,7 @@ let gcsOptions = {
   "keyFilename": resolve(__dirname, "WeeClik-813d8719632d.json"),
   "bucket": "weeclik-1517332083996.appspot.com",
   "bucketPrefix": 'baas_files',
-  "directAccess": false
+  "directAccess": true
 }
 let gcsAdapter = new GCSAdapter(gcsOptions);
 
