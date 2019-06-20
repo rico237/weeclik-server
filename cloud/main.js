@@ -2,11 +2,11 @@
 // TODO: After save on video to generate video thumbnail & description as 'video presentation {{ nom_du_commerce }}'
 // TODO: Devide cloud code into multiple controller class, like Commerce.js (before, after and webhooks)
 
-Parse.Cloud.beforeSave("Commerce", (request) => {
+Parse.Cloud.beforeSave("Commerce", async (request) => {
     const description = request.object.get("description");
     const brouillon   = request.object.get("brouillon");
 
-    if (description !== undefined) {
+    if (description !== undefined || description !== "") {
         var bannedWords = [
         "au", "un", "une", "à", "il", "elle", "mais", "où", "est", "donc", "or", "ni", "car", " ",
         "de", "la", "et", "du", "aux", "le", "se", "fait", "avec", "en", "des", "pas", "deux", "\n",
@@ -36,8 +36,6 @@ Parse.Cloud.beforeSave("Commerce", (request) => {
     if (brouillon === undefined || brouillon == null) {
         request.object.set("brouillon", true);
     }
-
-    response.success();
 });
 
 Parse.Cloud.define("retrieveAllObjects", (request, status) => {

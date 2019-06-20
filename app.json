@@ -1,0 +1,70 @@
+{
+  "addons": [
+    "deadmanssnitch",
+    "mongolab",
+    "scheduler",
+    "sumologic"
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "description": "",
+  "env": {
+    "ADAPTER_API_KEY": {
+      "required": true
+    },
+    "ADAPTER_DOMAIN": {
+      "required": true
+    },
+    "ADAPTER_FROM_ADDRESS": {
+      "required": true
+    },
+    "ADMIN_PASSWORD": {
+      "required": true
+    },
+    "ADMIN_USER": {
+      "required": true
+    },
+    "APP_ID": {
+      "required": true
+    },
+    "APP_NAME": {
+      "required": true
+    },
+    "DEADMANSSNITCH_API_KEY": {
+      "required": true
+    },
+    "MAILGUN_PUBKEY": {
+      "required": true
+    },
+    "MASTER_KEY": {
+      "required": true
+    },
+    "MONGODB_URI": {
+      "required": true
+    },
+    "PARSE_MOUNT": {
+      "required": true
+    },
+    "PUBLIC_URL": {
+      "required": true
+    },
+    "SERVER_URL": {
+      "required": true
+    },
+    "VERIFY_USER_EMAILS": {
+      "required": true
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1
+    }
+  },
+  "name": "weeclik-server",
+  "scripts": {
+  },
+  "stack": "heroku-18"
+}

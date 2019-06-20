@@ -11,6 +11,9 @@
   "dependencies": {
     "@parse/gcs-files-adapter": "^1.1.2",
     "@parse/simple-mailgun-adapter": "^1.0.3",
+    "body-parser": "^1.19.0",
+    "http-errors": "~1.6.2",
+    "dotenv": "^6.2.0",
     "express": "^4.16.4",
     "kerberos": "~0.0.x",
     "mailgun-js": "^0.22.0",
@@ -27,6 +30,6 @@
   },
   "engines": {
     "node": "8.16.0",
-    "npm" : "6.4.1"
+    "npm": "6.4.1"
   }
 }
