@@ -253,6 +253,16 @@ app.get('/redirect-to-store', (req, res) => {
       return res.redirect(301, process.env.IOS_LINK);
     } else {
       // HERE
+      const data = {
+        from: 'Web server <no-reply@weeclik.com>',
+        to: 'contact@herrick-wolber.fr',
+        subject: 'redirect to store problem',
+        text: JSON.stringify(md)
+      };
+
+      mailgun.messages().send(data, (error, body) => {
+        console.log(body);
+      });
       return res.status(200).send("Appareil iconnu")
     }
   } else {
