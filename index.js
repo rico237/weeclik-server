@@ -13,6 +13,7 @@ const createError   = require('http-errors'); // Gestion des erreurs
 const bodyParser    = require('body-parser'); // Parse incoming request bodies
 let GCSAdapter      = require('@parse/gcs-files-adapter');
 let mailgun         = require('mailgun-js')({apiKey: process.env.ADAPTER_API_KEY, domain: process.env.ADAPTER_DOMAIN, host: 'api.eu.mailgun.net'});
+let MobileDetect    = require('mobile-detect');
 
 Parse.initialize(process.env.APP_ID);
 Parse.serverURL = process.env.SERVER_URL;
@@ -173,14 +174,6 @@ cron.schedule('0 * * * *', () => {
   });
 });
 
-app.get('/cgu/', (req, res) => {
-  return res.status(200).send('cgu')
-})
-
-app.get('/politique-confidentialite/', (req, res) => {
-  return res.status(200).send('politique-confidentialite')
-})
-
 app.post('/send-error-mail', (req, res) => {
   console.log(req.body);
   if (req.body.content_message) {
@@ -212,7 +205,7 @@ app.post('/send-error-mail', (req, res) => {
   }
 })
 
-app.get('/valid_email/:email', (req, res) => {
+app.get('/valid-email/:email', (req, res) => {
   console.log(`Test address mail valid : ${req.params.email}`)
   // TODO: change
   let validator = require('mailgun-validate-email')(process.env.MAILGUN_PUBKEY)
@@ -234,3 +227,21 @@ app.get('/valid_email/:email', (req, res) => {
     }
   })
 });
+
+app.get('/redirect-to-store', (req, res) => {
+  let md = new MobileDetect(req.headers['user-agent'])
+  // TODO: show a rendered html page for unknown devices
+  if (md.phone() !== null) {
+    if (md.os() === 'AndroidOS') {
+      return res.redirect(301, process.env.ANDROID_LINK);
+    } else if (md.os() === 'iOS') {
+      return res.redirect(301, process.env.IOS_LINK);
+    } else {
+      // HERE
+      return res.status(200).send("Appareil iconnu")
+    }
+  } else {
+    // HERE
+    return res.status(200).send("L'appareil n'est pas un téléphone")
+  }
+})
