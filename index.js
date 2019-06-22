@@ -231,6 +231,7 @@ app.get('/valid-email/:email', (req, res) => {
 app.get('/redirect-to-store', (req, res) => {
   let md = new MobileDetect(req.headers['user-agent'])
   // TODO: [1] show a rendered html page for unknown devices
+  // TODO: [2] Add can open url - deep linking / universal links (better for ios)
   
   if (md.phone() !== null || md.mobile() !== null) {
     if (md.os() === 'AndroidOS') {
