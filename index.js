@@ -230,21 +230,7 @@ app.get('/valid-email/:email', (req, res) => {
 
 app.get('/redirect-to-store', (req, res) => {
   let md = new MobileDetect(req.headers['user-agent'])
-  // TODO: show a rendered html page for unknown devices
-  
-//   var output = '';
-//     for (var property in md) {
-//       // if (property === 'ua')
-//         output += property + ': ' + md[property]+'; ';
-//     }
-
-//     console.log( md.mobile() );          // 'Sony'
-// console.log( md.phone() );           // 'Sony'
-// console.log( md.userAgent() );       // 'Safari'
-// console.log( md.os() );              // 'AndroidOS'
-// console.log( md.is('iPhone') );      // false
-// console.log( md.version('Webkit') );         // 534.3
-// console.log( md.versionStr('Build') );       // '4.1.A.0.562'
+  // TODO: [1] show a rendered html page for unknown devices
   
   if (md.phone() !== null || md.mobile() !== null) {
     if (md.os() === 'AndroidOS') {
@@ -252,7 +238,6 @@ app.get('/redirect-to-store', (req, res) => {
     } else if (md.os() === 'iOS') {
       return res.redirect(301, process.env.IOS_LINK);
     } else {
-      // HERE
       const data = {
         from: 'Web server <no-reply@weeclik.com>',
         to: 'contact@herrick-wolber.fr',
@@ -263,10 +248,10 @@ app.get('/redirect-to-store', (req, res) => {
       mailgun.messages().send(data, (error, body) => {
         console.log(body);
       });
+      // HERE [1] 
       return res.status(200).send("Appareil iconnu")
     }
   } else {
-    // HERE
     const data = {
       from: 'Web server <no-reply@weeclik.com>',
       to: 'contact@herrick-wolber.fr',
@@ -279,7 +264,7 @@ app.get('/redirect-to-store', (req, res) => {
     });
 
     console.log(JSON.stringify(md))
-    
+    // HERE [1] 
     return res.status(200).send(`L'appareil n'est pas un téléphone <br><br>${JSON.stringify(md)}`)
   }
 })
