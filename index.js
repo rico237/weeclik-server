@@ -14,6 +14,8 @@ const bodyParser    = require('body-parser'); // Parse incoming request bodies
 let GCSAdapter      = require('@parse/gcs-files-adapter');
 let mailgun         = require('mailgun-js')({apiKey: process.env.ADAPTER_API_KEY, domain: process.env.ADAPTER_DOMAIN, host: 'api.eu.mailgun.net'});
 
+let MobileDetect = require('mobile-detect');
+
 Parse.initialize(process.env.APP_ID);
 Parse.serverURL = process.env.SERVER_URL;
 
@@ -234,3 +236,31 @@ app.get('/valid_email/:email', (req, res) => {
     }
   })
 });
+
+app.get('/redirect_to_store', (req, res) => {
+  let md = new MobileDetect(req.headers['user-agent'])
+
+  if (md.phone() !== null) {
+    if (md.os() === 'AndroidOS') {
+      return res.redirect(301, 'https://play.google.com/store/apps/details?id=cantum.weeclik');
+    } else if (md.os() === 'iOS') {
+      return res.redirect(301, 'http://weeclik.com');
+    } else {
+      return res.status(200).send("Appareil iconnu")
+    }
+
+  } else {
+    return res.status(200).send("L'appareil n'est pas un téléphone")
+  }
+
+  console.log( md.mobile() );          // 'Sony'
+  console.log( md.phone() );           // 'Sony'
+  console.log( md.tablet() );          // null
+  console.log( md.userAgent() );       // 'Safari'
+  console.log( md.os() );              // 'AndroidOS'
+  console.log( md.is('iPhone') );      // false
+  console.log( md.versionStr('Build') );       // '4.1.A.0.562'
+  console.log( md.match('playstation|xbox') ); // false
+
+
+})
