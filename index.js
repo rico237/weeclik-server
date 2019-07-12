@@ -13,6 +13,7 @@ const createError   = require('http-errors'); // Gestion des erreurs
 const bodyParser    = require('body-parser'); // Parse incoming request bodies
 let GCSAdapter      = require('@parse/gcs-files-adapter');
 let mailgun         = require('mailgun-js')({apiKey: process.env.ADAPTER_API_KEY, domain: process.env.ADAPTER_DOMAIN, host: 'api.eu.mailgun.net'});
+let MobileDetect    = require('mobile-detect');
 
 Parse.initialize(process.env.APP_ID);
 Parse.serverURL = process.env.SERVER_URL;
@@ -60,59 +61,61 @@ let gcsAdapter = new GCSAdapter(gcsOptions);
 console.log(process.env.MASTER_KEY)
 
 let api = new ParseServer({
-  databaseURI:        databaseUri,
-  cloud:              process.env.CLOUD_CODE_MAIN     || __dirname + '/cloud/main.js',
-  appId:              process.env.APP_ID,
-  masterKey:          process.env.MASTER_KEY,
-  filesAdapter:       gcsAdapter,
-  serverURL:          process.env.SERVER_URL,
-  publicServerURL:    process.env.PUBLIC_URL,
-  appName:            process.env.APP_NAME,
-  allowClientClassCreation: true,
-  // Enable email verification
-  // try to use this (avantage langue) // "@ngti/parse-server-mailgun": "^2.4.18",
-  verifyUserEmails: process.env.VERIFY_USER_EMAILS || true,
-  emailAdapter: {
-    module: 'parse-server-mailgun',
-    options: {
-      // The address that your emails come from
-      fromAddress: 'Herrick de l\'équipe Weeclik <contact@herrick-wolber.fr>',
-      // Your domain from mailgun.com
-      domain: process.env.ADAPTER_DOMAIN,
-      // Mailgun host (default: 'api.mailgun.net'). 
-      // When using the EU region, the host should be set to 'api.eu.mailgun.net'
-      host: 'api.eu.mailgun.net',
-      // Your API key from mailgun.com
-      apiKey: process.env.ADAPTER_API_KEY,
-      // The template section
-      templates: {
-        passwordResetEmail: {
-          subject: 'Mot de passe oublié ?',
-          pathPlainText: resolve(__dirname, 'email_templates/password_reset/password_reset_email.txt'),
-          pathHtml: resolve(__dirname, 'email_templates/password_reset/password_reset_email.html'),
-          callback: (user) => { return { 
-            name: user.get('name') 
-          }}
-          // Now you can use {{name}} in your templates
-        },
-        verificationEmail: {
-          subject: 'Bienvenue dans la famille Weeclik',
-          pathPlainText: resolve(__dirname, 'email_templates/verification_email/verification_email.txt'),
-          pathHtml: resolve(__dirname, 'email_templates/verification_email/verification_email.html'),
-          callback: (user) => { return { 
-            name: user.get('name') 
-          }}
-          // Now you can use {{name}} in your templates
-        },
-        customEmailAlert: {
-          subject: 'Message urgent',
-          pathPlainText: resolve(__dirname, 'email_templates/custom_email/custom_email.txt'),
-          pathHtml: resolve(__dirname, 'email_templates/custom_email/custom_email.html'),
-          callback: (user) => { return { 
-            name: user.get('name') 
-          }}
-          // Now you can use {{name}} in your templates
-        }
+    databaseURI:        databaseUri,
+    cloud:              process.env.CLOUD_CODE_MAIN     || __dirname + '/cloud/main.js',
+    appId:              process.env.APP_ID,
+    masterKey:          process.env.MASTER_KEY,
+    javascriptKey:      process.env.JAVASCRIPT_KEY,
+    filesAdapter:       gcsAdapter,
+    serverURL:          process.env.SERVER_URL,
+    publicServerURL:    process.env.PUBLIC_URL,
+    appName:            process.env.APP_NAME,
+    allowClientClassCreation: true,
+      // Enable email verification
+      // try to use this (avantage langue) // "@ngti/parse-server-mailgun": "^2.4.18",
+      verifyUserEmails: process.env.VERIFY_USER_EMAILS || true,
+      emailAdapter: {
+          module: 'parse-server-mailgun',
+          options: {
+          // The address that your emails come from
+          fromAddress: 'Herrick de l\'équipe Weeclik <contact@herrick-wolber.fr>',
+          // Your domain from mailgun.com
+          domain: process.env.ADAPTER_DOMAIN,
+          // Mailgun host (default: 'api.mailgun.net'). 
+          // When using the EU region, the host should be set to 'api.eu.mailgun.net'
+          host: 'api.eu.mailgun.net',
+          // Your API key from mailgun.com
+          apiKey: process.env.ADAPTER_API_KEY,
+          // The template section
+          templates: {
+              passwordResetEmail: {
+                  subject: 'Mot de passe oublié ?',
+                  pathPlainText: resolve(__dirname, 'email_templates/password_reset/password_reset_email.txt'),
+                  pathHtml: resolve(__dirname, 'email_templates/password_reset/password_reset_email.html'),
+                  callback: (user) => { return { 
+                      name: user.get('name') 
+                  }}
+                  // Now you can use {{name}} in your templates
+              },
+              verificationEmail: {
+                  subject: 'Bienvenue dans la famille Weeclik',
+                  pathPlainText: resolve(__dirname, 'email_templates/verification_email/verification_email.txt'),
+                  pathHtml: resolve(__dirname, 'email_templates/verification_email/verification_email.html'),
+                  callback: (user) => { return { 
+                      name: user.get('name') 
+                  }}
+                  // Now you can use {{name}} in your templates
+              },
+              customEmailAlert: {
+                  subject: 'Message urgent',
+                  pathPlainText: resolve(__dirname, 'email_templates/custom_email/custom_email.txt'),
+                  pathHtml: resolve(__dirname, 'email_templates/custom_email/custom_email.html'),
+                  callback: (user) => { return { 
+                      name: user.get('name') 
+                  }}
+                  // Now you can use {{name}} in your templates
+              }
+          }
       }
     }
   }
@@ -173,14 +176,6 @@ cron.schedule('0 * * * *', () => {
   });
 });
 
-app.get('/cgu/', (req, res) => {
-  return res.status(200).send('cgu')
-})
-
-app.get('/politique-confidentialite/', (req, res) => {
-  return res.status(200).send('politique-confidentialite')
-})
-
 app.post('/send-error-mail', (req, res) => {
   console.log(req.body);
   if (req.body.content_message) {
@@ -212,7 +207,7 @@ app.post('/send-error-mail', (req, res) => {
   }
 })
 
-app.get('/valid_email/:email', (req, res) => {
+app.get('/valid-email/:email', (req, res) => {
   console.log(`Test address mail valid : ${req.params.email}`)
   // TODO: change
   let validator = require('mailgun-validate-email')(process.env.MAILGUN_PUBKEY)
@@ -234,3 +229,55 @@ app.get('/valid_email/:email', (req, res) => {
     }
   })
 });
+
+app.get('/redirect-to-store', (req, res) => {
+    let md = new MobileDetect(req.headers['user-agent'])
+    // TODO: [1] show a rendered html page for unknown devices
+    // TODO: [2] Add can open url - deep linking / universal links (better for ios)
+    // 
+    // https://github.com/mderazon/node-deeplink
+    // https://stackoverflow.com/questions/32689483/ios9-try-to-open-app-via-scheme-if-possible-or-redirect-to-app-store-otherwise/32774701#32774701
+    // https://www.raywenderlich.com/6080-universal-links-make-the-connection
+    
+    // IF NOT A BOT
+    if (!md.is('bot')) {
+        if (md.phone() !== null || md.mobile() !== null) {
+            console.log(`OS collected : ${md.os}`)
+            if (md.os() === 'AndroidOS') {
+                console.log('Android')
+                return res.redirect(301, process.env.ANDROID_LINK);
+            } else if (md.os() === 'iOS') {
+                console.log('IOS')
+                return res.redirect(301, process.env.IOS_LINK);
+            } else {
+                const data = {
+                    from: 'Web server <no-reply@weeclik.com>',
+                    to: 'contact@herrick-wolber.fr',
+                    subject: 'redirect to store problem',
+                    text: JSON.stringify(md)
+                };
+
+                mailgun.messages().send(data, (error, body) => {
+                    console.log(body);
+                });
+                // HERE [1] 
+                return res.status(200).send("Appareil iconnu")
+            }
+        } else {
+            const data = {
+                from: 'Web server <no-reply@weeclik.com>',
+                to: 'contact@herrick-wolber.fr',
+                subject: 'redirect to store problem',
+                text: JSON.stringify(md)
+            };
+
+            mailgun.messages().send(data, (error, body) => {
+                console.log(body);
+            });
+
+            console.log(JSON.stringify(md))
+            // HERE [1] 
+            return res.status(200).send(`L'appareil n'est pas un téléphone <br><br>${JSON.stringify(md)}`)
+        }
+    } 
+})
