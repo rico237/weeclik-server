@@ -65,6 +65,7 @@ let api = new ParseServer({
     cloud:              process.env.CLOUD_CODE_MAIN     || __dirname + '/cloud/main.js',
     appId:              process.env.APP_ID,
     masterKey:          process.env.MASTER_KEY,
+    javascriptKey:      process.env.JAVASCRIPT_KEY,
     filesAdapter:       gcsAdapter,
     serverURL:          process.env.SERVER_URL,
     publicServerURL:    process.env.PUBLIC_URL,
@@ -240,9 +241,12 @@ app.get('/redirect-to-store', (req, res) => {
     // IF NOT A BOT
     if (!md.is('bot')) {
         if (md.phone() !== null || md.mobile() !== null) {
+            console.log(`OS collected : ${md.os}`)
             if (md.os() === 'AndroidOS') {
+                console.log('Android')
                 return res.redirect(301, process.env.ANDROID_LINK);
             } else if (md.os() === 'iOS') {
+                console.log('IOS')
                 return res.redirect(301, process.env.IOS_LINK);
             } else {
                 const data = {
