@@ -118,7 +118,6 @@ let api = new ParseServer({
           }
       }
     }
-  }
 });
 
 // Client-keys like the javascript key or the .NET key are not necessary with parse-server
