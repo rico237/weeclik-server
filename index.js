@@ -65,7 +65,6 @@ let api = new ParseServer({
     cloud:              process.env.CLOUD_CODE_MAIN     || __dirname + '/cloud/main.js',
     appId:              process.env.APP_ID,
     masterKey:          process.env.MASTER_KEY,
-    javascriptKey:      process.env.JAVASCRIPT_KEY,
     filesAdapter:       gcsAdapter,
     serverURL:          process.env.SERVER_URL,
     publicServerURL:    process.env.PUBLIC_URL,
