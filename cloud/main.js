@@ -2,11 +2,13 @@
 // TODO: After save on video to generate video thumbnail & description as 'video presentation {{ nom_du_commerce }}'
 // TODO: Devide cloud code into multiple controller class, like Commerce.js (before, after and webhooks)
 
-Parse.Cloud.beforeSave("Commerce", async (request) => {
-    const description = request.object.get("description");
-    const brouillon   = request.object.get("brouillon");
 
-    if (description !== undefined || description !== "") {
+// TODO: CREATE A AFTER DELETE QUI VA SUPPRIMER VIDEO & PHOTO DU COMMERCE
+Parse.Cloud.beforeSave("Commerce", (request) => {
+    var description     = request.object.get("description");
+    const brouillon     = request.object.get("brouillon");
+
+    if (description !== undefined || description !== "" || typeof description !== 'undefined') {
         var bannedWords = [
         "au", "un", "une", "à", "il", "elle", "mais", "où", "est", "donc", "or", "ni", "car", " ",
         "de", "la", "et", "du", "aux", "le", "se", "fait", "avec", "en", "des", "pas", "deux", "\n",
@@ -21,19 +23,21 @@ Parse.Cloud.beforeSave("Commerce", async (request) => {
 
         var hashtags = [];
 
-        let res = description.split(" ");
+        if (typeof description.split(" ") !== 'undefined') {
+            let res = description.split(" ");
 
-        for (var i = 0; i < res.length; i++) {
-            let word = res[i].toLowerCase().replace(",","").replace(".", "");
-            if (!sorted.includes(word)) {
-                hashtags.push("#"+word);
+            for (var i = 0; i < res.length; i++) {
+                let word = res[i].toLowerCase().replace(",","").replace(".", "");
+                if (!sorted.includes(word)) {
+                    hashtags.push("#"+word);
+                }
             }
-        }
 
-        request.object.set("tags", hashtags);
+            request.object.set("tags", hashtags);
+        }
     }
 
-    if (brouillon === undefined || brouillon == null) {
+    if (brouillon === undefined || brouillon === null || typeof brouillon === 'undefined') {
         request.object.set("brouillon", true);
     }
 });
@@ -73,7 +77,7 @@ Parse.Cloud.define("retrieveAllObjects", (request, status) => {
 
 Parse.Cloud.define("sendOutdatedEmail", async (request) => {
   // Get access to Parse Server's cache
-    const { AppCache } = require('parse-server/lib/cache');
+  const { AppCache } = require('parse-server/lib/cache');
     // Get a reference to the MailgunAdapter
     // NOTE: It's best to do this inside the Parse.Cloud.define(...) method body and not at the top of your file with your other imports. This gives Parse Server time to boot, setup cloud code and the email adapter.
     const MailgunAdapter = AppCache.get('JVQZMCuNYvnecPWvWFDTZa8A').userController.adapter;
@@ -82,7 +86,7 @@ Parse.Cloud.define("sendOutdatedEmail", async (request) => {
 
     // Invoke the send method with an options object
     MailgunAdapter.send({
-      templateName: 'customEmailAlert',
+        templateName: 'customEmailAlert',
       // Optional override of your configuration's subject
       subject: 'Important: action required',
       // Optional override of the adapter's fromAddress
@@ -92,8 +96,8 @@ Parse.Cloud.define("sendOutdatedEmail", async (request) => {
       // Additional message fields can be included with the "extra" option
       // See https://nodemailer.com/extras/mailcomposer/#e-mail-message-fields for an overview of what can be included
       extra: {
-        attachments: [], /* include attachment objects */
-        replyTo: 'reply-to-address'
+          attachments: [], /* include attachment objects */
+          replyTo: 'reply-to-address'
       }
-    });
+  });
 });
