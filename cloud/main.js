@@ -4,7 +4,7 @@
 
 
 // TODO: CREATE A AFTER DELETE QUI VA SUPPRIMER VIDEO & PHOTO DU COMMERCE
-Parse.Cloud.beforeSave("Commerce", (request) => {
+Parse.Cloud.afterSave("Commerce", (request) => {
     var description     = request.object.get("description");
     const brouillon     = request.object.get("brouillon");
 
