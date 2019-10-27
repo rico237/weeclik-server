@@ -14,7 +14,7 @@ const bodyParser    = require('body-parser'); // Parse incoming request bodies
 let GCSAdapter      = require('@parse/gcs-files-adapter');
 let mailgun         = require('mailgun-js')({apiKey: process.env.ADAPTER_API_KEY, domain: process.env.ADAPTER_DOMAIN, host: 'api.eu.mailgun.net'});
 let MobileDetect    = require('mobile-detect');
-const stripe          = require('stripe')(process.env.STIPE_SECRET_KEY);
+const stripe          = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 Parse.initialize(process.env.APP_ID);
 Parse.serverURL = process.env.SERVER_URL;
