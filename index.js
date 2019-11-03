@@ -14,6 +14,7 @@ const bodyParser    = require('body-parser'); // Parse incoming request bodies
 let GCSAdapter      = require('@parse/gcs-files-adapter');
 let mailgun         = require('mailgun-js')({apiKey: process.env.ADAPTER_API_KEY, domain: process.env.ADAPTER_DOMAIN, host: 'api.eu.mailgun.net'});
 let MobileDetect    = require('mobile-detect');
+const stripe        = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 Parse.initialize(process.env.APP_ID);
 Parse.serverURL = process.env.SERVER_URL;
@@ -62,7 +63,7 @@ console.log(process.env.MASTER_KEY)
 
 let api = new ParseServer({
     databaseURI:        databaseUri,
-    cloud:              process.env.CLOUD_CODE_MAIN     || __dirname + '/cloud/main.js',
+    cloud:              process.env.CLOUD_CODE_MAIN || __dirname + '/cloud/main.js',
     appId:              process.env.APP_ID,
     masterKey:          process.env.MASTER_KEY,
     filesAdapter:       gcsAdapter,
@@ -203,7 +204,23 @@ app.post('/send-error-mail', (req, res) => {
       message: 'Missing parameter : content_message is undefined',
     })
   }
-})
+});
+
+app.post("/charge", async (req, res) => {
+    try {
+        let { status } = await stripe.charges.create({
+            amount: 329.99,
+            currency: "eur",
+            description: "Abonnement annuel d'un commerce sur Weeclik (web & mobile)",
+            source: req.body
+        });
+
+        res.json({status});
+    } catch (error) {
+        console.error(error);
+        res.status(500).end();
+    }
+});
 
 app.get('/valid-email/:email', (req, res) => {
   console.log(`Test address mail valid : ${req.params.email}`)
