@@ -16,6 +16,9 @@ let mailgun         = require('mailgun-js')({apiKey: process.env.ADAPTER_API_KEY
 let MobileDetect    = require('mobile-detect');
 const stripe        = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
+var cors = require('cors');
+app.use(cors({origin: '*'}));
+
 Parse.initialize(process.env.APP_ID);
 Parse.serverURL = process.env.SERVER_URL;
 
