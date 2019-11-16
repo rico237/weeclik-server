@@ -62,13 +62,14 @@ console.log(process.env.MASTER_KEY)
 
 let api = new ParseServer({
     databaseURI:        databaseUri,
-    cloud:              process.env.CLOUD_CODE_MAIN     || __dirname + '/cloud/main.js',
+    cloud:              process.env.CLOUD_CODE_MAIN || __dirname + '/cloud/main.js',
     appId:              process.env.APP_ID,
     masterKey:          process.env.MASTER_KEY,
     filesAdapter:       gcsAdapter,
     serverURL:          process.env.SERVER_URL,
     publicServerURL:    process.env.PUBLIC_URL,
     appName:            process.env.APP_NAME,
+    maxUploadSize:      process.env.MAX_UPLOAD_SIZE || "1024mb", // 1024 MB = 1 Go
     allowClientClassCreation: true,
       // Enable email verification
       // try to use this (avantage langue) // "@ngti/parse-server-mailgun": "^2.4.18",
