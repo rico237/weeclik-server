@@ -15,9 +15,7 @@ let GCSAdapter      = require('@parse/gcs-files-adapter');
 let mailgun         = require('mailgun-js')({apiKey: process.env.ADAPTER_API_KEY, domain: process.env.ADAPTER_DOMAIN, host: 'api.eu.mailgun.net'});
 let MobileDetect    = require('mobile-detect');
 const stripe        = require('stripe')(process.env.STRIPE_SECRET_KEY);
-
-var cors = require('cors');
-app.use(cors({origin: '*'}));
+const cors          = require('cors');
 
 Parse.initialize(process.env.APP_ID);
 Parse.serverURL = process.env.SERVER_URL;
@@ -73,6 +71,7 @@ let api = new ParseServer({
     serverURL:          process.env.SERVER_URL,
     publicServerURL:    process.env.PUBLIC_URL,
     appName:            process.env.APP_NAME,
+    maxUploadSize:      process.env.MAX_UPLOAD_SIZE || "1024mb", // 1024 MB = 1 Go
     allowClientClassCreation: true,
       // Enable email verification
       // try to use this (avantage langue) // "@ngti/parse-server-mailgun": "^2.4.18",
@@ -136,6 +135,8 @@ app.use(mountPath, api);
 
 // make the Parse Dashboard available at /dashboard
 app.use('/dashboard', dashboard);
+
+app.use(cors({origin: '*'}));
 
 let port = process.env.PORT || 1337;
 let httpServer = require('http').createServer(app);
