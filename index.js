@@ -235,7 +235,7 @@ app.post('/send-error-mail', (req, res) => {
 app.post("/charge", async (req, res) => {
     try {
         let { status } = await stripe.charges.create({
-            amount: 329.99,
+            amount: 32999,
             currency: "eur",
             description: "Abonnement annuel d'un commerce sur Weeclik (web & mobile)",
             source: req.body
