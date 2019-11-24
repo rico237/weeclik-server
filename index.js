@@ -1,12 +1,13 @@
 require('dotenv').config({ debug: process.env.DEBUG })
 
 let express         = require('express');
+let app             = express();
+
 let ParseServer     = require('parse-server').ParseServer;
 let ParseDashboard  = require('parse-dashboard');
 let path            = require('path');
 const cron          = require('node-cron');
 let moment          = require('moment');
-let app             = express();
 let Parse           = require('parse/node');
 const resolve       = require('path').resolve;
 const createError   = require('http-errors'); // Gestion des erreurs
@@ -16,6 +17,24 @@ let mailgun         = require('mailgun-js')({apiKey: process.env.ADAPTER_API_KEY
 let MobileDetect    = require('mobile-detect');
 const stripe        = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const cors          = require('cors');
+
+// CORS origin = https://expressjs.com/en/resources/middleware/cors.html
+var whitelist = [
+  'http://localhost/', 
+  '127.0.0.1',
+  'https://weeclik-webapp.herokuapp.com/', 
+  'https://weeclik-webapp-dev.herokuapp.com/', 
+  'https://www.weeclik.com/'
+]
+var corsOptions = {
+  origin: function (origin, callback) {
+    if (whitelist.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
+}
 
 Parse.initialize(process.env.APP_ID);
 Parse.serverURL = process.env.SERVER_URL;
@@ -80,7 +99,7 @@ let api = new ParseServer({
           module: 'parse-server-mailgun',
           options: {
           // The address that your emails come from
-          fromAddress: 'Herrick de l\'équipe Weeclik <contact@herrick-wolber.fr>',
+          fromAddress: 'Herrick de l\'équipe Weeclik <contact@weeclik.com>',
           // Your domain from mailgun.com
           domain: process.env.ADAPTER_DOMAIN,
           // Mailgun host (default: 'api.mailgun.net'). 
@@ -136,7 +155,8 @@ app.use(mountPath, api);
 // make the Parse Dashboard available at /dashboard
 app.use('/dashboard', dashboard);
 
-app.use(cors({origin: '*'}));
+// Allow all cors origin
+// app.use(cors());
 
 let port = process.env.PORT || 1337;
 let httpServer = require('http').createServer(app);
@@ -210,7 +230,7 @@ app.post('/send-error-mail', (req, res) => {
   }
 });
 
-app.post("/charge", async (req, res) => {
+app.post("/charge", cors(corsOptions), async (req, res) => {
     try {
         let { status } = await stripe.charges.create({
             amount: 329.99,
