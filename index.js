@@ -244,7 +244,7 @@ app.post("/charge", async (req, res) => {
         res.json({status});
     } catch (error) {
         res.status(500);
-        res.render('error', { error: err });
+        res.render('error', { error: error });
     }
 });
 
