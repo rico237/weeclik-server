@@ -19,22 +19,23 @@ const stripe        = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const cors          = require('cors');
 
 // CORS origin = https://expressjs.com/en/resources/middleware/cors.html
-var whitelist = [
-  'http://localhost/', 
-  '127.0.0.1',
-  'https://weeclik-webapp.herokuapp.com/', 
-  'https://weeclik-webapp-dev.herokuapp.com/', 
-  'https://www.weeclik.com/'
-]
-var corsOptions = {
-  origin: function (origin, callback) {
-    if (whitelist.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  }
-}
+// var whitelist = [
+//   'http://localhost/', 
+//   '127.0.0.1',
+//   'https://weeclik-webapp.herokuapp.com/', 
+//   'https://weeclik-webapp-dev.herokuapp.com/', 
+//   'https://www.weeclik.com/'
+// ]
+// var corsOptions = {
+//   origin: function (origin, callback) {
+//     if (whitelist.indexOf(origin) !== -1) {
+//       callback(null, true);
+//     } else {
+//       console.log(origin)
+//       callback(new Error('Not allowed by CORS'));
+//     }
+//   }
+// }
 
 Parse.initialize(process.env.APP_ID);
 Parse.serverURL = process.env.SERVER_URL;
@@ -156,7 +157,7 @@ app.use(mountPath, api);
 app.use('/dashboard', dashboard);
 
 // Allow all cors origin
-// app.use(cors());
+app.use(cors());
 
 let port = process.env.PORT || 1337;
 let httpServer = require('http').createServer(app);
@@ -230,7 +231,8 @@ app.post('/send-error-mail', (req, res) => {
   }
 });
 
-app.post("/charge", cors(corsOptions), async (req, res) => {
+// app.post("/charge", cors(corsOptions), async (req, res) => {
+app.post("/charge", async (req, res) => {
     try {
         let { status } = await stripe.charges.create({
             amount: 329.99,
@@ -241,8 +243,8 @@ app.post("/charge", cors(corsOptions), async (req, res) => {
 
         res.json({status});
     } catch (error) {
-        console.error(error);
-        res.status(500).end();
+        res.status(500);
+        res.render('error', { error: err });
     }
 });
 
