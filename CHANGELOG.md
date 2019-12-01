@@ -5,7 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 - Add [Stripe](https://stripe.com/fr) payment method (payment + billing).
 
+## [1.0.6] - 2019-12-01
+### Changed
+- Change handling of /charge endpoint.
+
 ## [1.0.5] - 2019-11-24
+### Added
 - Add CORS domain origin option on POST (/charge).
 
 ## [1.0.4] - 2019-11-16
