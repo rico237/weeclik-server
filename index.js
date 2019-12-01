@@ -42,6 +42,7 @@ Parse.serverURL = process.env.SERVER_URL;
 
 // Configuration Server
 app.use(bodyParser.json({ type: 'application/json' }));
+app.use(bodyParser.urlencoded({ extended: true }));
 
 moment().format();
 
@@ -231,21 +232,72 @@ app.post('/send-error-mail', (req, res) => {
   }
 });
 
-// app.post("/charge", cors(corsOptions), async (req, res) => {
-app.post("/charge", async (req, res) => {
-    try {
-        let { status } = await stripe.charges.create({
-            amount: 32999,
-            currency: "eur",
-            description: "Abonnement annuel d'un commerce sur Weeclik (web & mobile)",
-            source: req.body
-        });
-
-        res.json({status});
-    } catch (error) {
-        res.status(500);
-        res.render('error', { error: error });
+// Match the raw body to content type application/json
+app.post('/webhook', (request, response) => {
+    let event;
+    try {event = request.body;}
+    catch (err) {response.status(400).send(`Webhook Error: ${err.message}`);}
+    console.log(event)
+    // Handle the event
+    switch (event.type) {
+    case 'payment_intent.succeeded':
+        const paymentIntent = event.data.object;
+        response.json({received: true, method : event.data.object});
+        break;
+    case 'payment_method.attached':
+        response.json({received: true, method : event.data.object});
+        break;
+    case 'payment_intent.created':
+        response.json({received: true, method : event.data.object});
+        break;
+    case 'charge.succeeded':
+        response.json({received: true, method : event.data.object});
+        break;
+    default:
+        // Unexpected event type
+        console.log('Stripe event not handled by server')
+        console.log(event.type)
+        return response.status(400).end();
     }
+  });
+
+app.post("/charge", (req, res) => {    
+    if (req.body.object === 'event') {return;}
+
+    stripe.charges.create({
+        amount: 32999,
+        currency: "eur",
+        description: "Abonnement annuel d'un commerce sur Weeclik (web & mobile)",
+        source: req.body.token.id
+    }).then(response => {
+        res.json({ok: true, message: 'success', response: response});
+    }).catch(error => {
+        const message = error.type + ' : ' + error.message;
+        console.log(message)
+        switch (error.type) {
+            case 'StripeCardError':
+              // A declined card error
+              error.message; // => e.g. "Your card's expiration year is invalid."
+              break;
+            case 'StripeInvalidRequestError':
+                    error.message;
+              // Invalid parameters were supplied to Stripe's API
+              break;
+            case 'StripeAPIError':
+              // An error occurred internally with Stripe's API
+              break;
+            case 'StripeConnectionError':
+              // Some kind of error occurred during the HTTPS communication
+              break;
+            case 'StripeAuthenticationError':
+              // You probably used an incorrect API key
+              break;
+            case 'StripeRateLimitError':
+              // Too many requests hit the API too quickly
+              break;
+          }
+        res.status(500).json({ok: false, message: 'error', response: message});
+    });
 });
 
 app.get('/valid-email/:email', (req, res) => {

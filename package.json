@@ -7,6 +7,7 @@
     "type": "git",
     "url": "https://github.com/ParsePlatform/parse-server-example"
   },
+  "proxy": "http://localhost:1337",
   "license": "MIT",
   "dependencies": {
     "@parse/gcs-files-adapter": "^1.1.2",
