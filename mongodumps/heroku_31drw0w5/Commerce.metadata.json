@@ -1,0 +1,1 @@
+{"options":{},"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_","ns":"heroku_31drw0w5.Commerce"},{"v":{"$numberInt":"2"},"key":{"position":"2d"},"name":"position_2d","ns":"heroku_31drw0w5.Commerce"}],"uuid":"0dc5048612c243b680c3a9398b0bd7b6"}

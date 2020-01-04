@@ -33,3 +33,5 @@ npm-debug.log
 
 # Env variables
 *.env
+
+.DS_Store
