@@ -99,14 +99,11 @@ Parse.Cloud.afterSave("Commerce", (request) => {
     }
 });
 
-Parse.Cloud.define('end', async (request) => {
+Parse.Cloud.define('endedSubscription', async (request) => {
     const query = new Parse.Query("Commerce");
-    query.equalTo("nomCommerce", "zazaz");
     // Where current date is after subscription date
-    // query.lessThan("endSubscription", new Date());
+    query.lessThan("endSubscription", new Date());
     const result = await query.find();
-    console.log("Result : ");
-    console.log(result);
     return result;
 });
 
