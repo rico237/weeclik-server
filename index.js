@@ -192,7 +192,7 @@ cron.schedule('*/10 * * * * *', async () => {
   // TODO: Ecrire fonction pour ecriture de log
   // TODO: Envoi de mail à chaque commerce passant en mode desactivé (user & admin)
   console.log(`Function executé à ${moment()}`)
-  const commerces = await Parse.Cloud.run('end');
+  const commerces = await Parse.Cloud.run('endedSubscription');
   console.log(commerces)
   // Parse.Cloud.run('commerceOutdatedSubscription')
   // .then((objects) => {
