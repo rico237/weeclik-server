@@ -102,6 +102,7 @@ Parse.Cloud.afterSave("Commerce", (request) => {
 Parse.Cloud.define('endedSubscription', async (request) => {
     const query = new Parse.Query("Commerce");
     // Where current date is after subscription date
+    query.exists("endSubscription");
     query.lessThan("endSubscription", new Date());
     const result = await query.find();
     return result;
