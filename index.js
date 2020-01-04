@@ -1,4 +1,8 @@
-require('dotenv').config({ debug: process.env.DEBUG })
+// require('dotenv').config({ 
+//   debug: process.env.DEBUG,
+//   path: 'dev.env'
+// })
+require('dotenv').config()
 
 let express         = require('express');
 let app             = express();
@@ -50,6 +54,8 @@ let databaseUri = process.env.DATABASE_URI || process.env.MONGODB_URI;
 
 if (!databaseUri) { 
   console.log('DATABASE_URI not specified, falling back to localhost.');
+} else {
+  console.log('DB URI: ' + databaseUri);
 }
 
 let options = { allowInsecureHTTP: true };
@@ -84,7 +90,7 @@ let gcsAdapter = new GCSAdapter(gcsOptions);
 console.log(process.env.MASTER_KEY)
 
 let api = new ParseServer({
-    databaseURI:        databaseUri,
+    databaseURI:        databaseUri || 'mongodb://localhost:27017/weeclik',
     cloud:              process.env.CLOUD_CODE_MAIN || __dirname + '/cloud/main.js',
     appId:              process.env.APP_ID,
     masterKey:          process.env.MASTER_KEY,
@@ -149,6 +155,9 @@ let api = new ParseServer({
 
 // Serve static assets from the /public folder
 app.use('/public', express.static(path.join(__dirname, '/public')));
+app.get('/apple-app-site-association', (req, res) => {
+  res.status(200).sendFile(path.join(__dirname, 'apple-app-site-association'));
+});
 
 // Serve the Parse API on the /parse URL prefix
 let mountPath = process.env.PARSE_MOUNT;
@@ -163,7 +172,7 @@ app.use(cors());
 let port = process.env.PORT || 1337;
 let httpServer = require('http').createServer(app);
 httpServer.listen(port, function() {
-  console.log('Running weekclik server on port ' + port);
+  console.log('Running weeclik server on port ' + port);
 });
 
 app.get('/cgu/', (req, res) => {
@@ -177,28 +186,35 @@ app.get('/politique-confidentialite/', (req, res) => {
 // Toute les heure à 0 minute
 // '* * 1 * *' tous les mois ?
 // '* * * * *'
-cron.schedule('0 * * * *', () => {
+cron.schedule('*/10 * * * * *', async () => {
+// cron.schedule('0 * * * *', () => {
   // Chaque heure à 0 (01:00, 15:00, etc)
   // TODO: Ecrire fonction pour ecriture de log
   // TODO: Envoi de mail à chaque commerce passant en mode desactivé (user & admin)
   console.log(`Function executé à ${moment()}`)
-  Parse.Cloud.run('retrieveAllObjects', { object_type: "Commerce", only_objectId: false })
-  .then((objects) => {
-    console.log("Successfully retrieved " + objects.length + " commerces.");
-    for (let i = 0; i < objects.length; i++) {
-      let object = objects[i];
-      if (object.get('endSubscription') !== undefined) {
-        if (moment(object.get('endSubscription')).isValid()) {
-          let day =  moment(object.get('endSubscription'))
-          if (moment().isSameOrAfter(day)) {
-            console.log(object.get('nomCommerce') +  ' passed date')
-            object.set("statutCommerce", 0)
-            object.save()
-          }
-        }
-      }
-    }
-  });
+  const commerces = await Parse.Cloud.run('end');
+  console.log(commerces)
+  // Parse.Cloud.run('commerceOutdatedSubscription')
+  // .then((objects) => {
+  //   console.log(objects);
+  //   console.log("Successfully retrieved " + objects.length + " commerces.");
+  //   for (let i = 0; i < objects.length; i++) {
+  //     let object = objects[i];
+  //     if (object.get('endSubscription') !== undefined) {
+  //       if (moment(object.get('endSubscription')).isValid()) {
+  //         let day =  moment(object.get('endSubscription'))
+  //         if (moment().isSameOrAfter(day)) {
+  //           console.log(object.get('nomCommerce') +  ' passed date')
+  //           object.set("statutCommerce", 0)
+  //           object.save()
+  //         }
+  //       }
+  //     }
+  //   }
+  // }).catch((error) => {
+  //   console.log("ERROR");
+  //   console.log(error);
+  // });
 });
 
 app.post('/send-error-mail', (req, res) => {

@@ -1,1 +1,0 @@
-{"options":{},"indexes":[{"v":2,"key":{"_id":1},"name":"_id_","ns":"heroku_wzcv40q1._User"},{"v":2,"unique":true,"key":{"username":1},"name":"username_1","ns":"heroku_wzcv40q1._User","background":true,"sparse":true},{"v":2,"unique":true,"key":{"email":1},"name":"email_1","ns":"heroku_wzcv40q1._User","background":true,"sparse":true}],"uuid":"fa9c82759ca4450689f73c05befc7ad2"}
