@@ -202,7 +202,7 @@ cron.schedule('*/10 * * * * *', async () => {
       if (moment().isSameOrAfter(day)) {
         console.log(object.get('nomCommerce') +  ' passed date');
         object.set("statutCommerce", 0);
-        await object.save();
+        await object.save(null, {useMasterKey:true});
       }
     }
   }
