@@ -187,8 +187,8 @@ app.get('/politique-confidentialite/', (req, res) => {
 // Toute les heure à 0 minute
 // '* * 1 * *' tous les mois ?
 // '* * * * *'
-cron.schedule('*/10 * * * * *', async () => {
-// cron.schedule('0 * * * *', () => {
+// cron.schedule('*/10 * * * * *', async () => {
+cron.schedule('0 * * * *', async () => {
   // Chaque heure à 0 (01:00, 15:00, etc)
   // TODO: Ecrire fonction pour ecriture de log
   // TODO: Envoi de mail à chaque commerce passant en mode desactivé (user & admin)
