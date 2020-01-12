@@ -70,7 +70,8 @@ Parse.Cloud.afterSave("Commerce", (request) => {
         var bannedWords = [
         "au", "un", "une", "à", "il", "elle", "ils", "elles", "mais", "où", "est", "donc", "or", "ni", "car", " ",
         "de", "la", "et", "du", "aux", "le", "se", "fait", "avec", "en", "des", "pas", "deux", "\n",
-        "\t", "\n\t", "<br>", "<br/>", "<br />", "l", "a", "n", "test"
+        "\t", "\n\t", "<br>", "<br/>", "<br />", "l", "a", "n", "test", "description", "sappuie", "sur", "pour",
+        "les", "proposer", "très"
         ];
 
         var sorted = [];
