@@ -1,12 +1,17 @@
-require('dotenv').config({ debug: process.env.DEBUG })
+// require('dotenv').config({ 
+//   debug: process.env.DEBUG,
+//   path: 'dev.env'
+// })
+require('dotenv').config()
 
 let express         = require('express');
+let app             = express();
+
 let ParseServer     = require('parse-server').ParseServer;
 let ParseDashboard  = require('parse-dashboard');
 let path            = require('path');
 const cron          = require('node-cron');
 let moment          = require('moment');
-let app             = express();
 let Parse           = require('parse/node');
 const resolve       = require('path').resolve;
 const createError   = require('http-errors'); // Gestion des erreurs
@@ -14,19 +19,44 @@ const bodyParser    = require('body-parser'); // Parse incoming request bodies
 let GCSAdapter      = require('@parse/gcs-files-adapter');
 let mailgun         = require('mailgun-js')({apiKey: process.env.ADAPTER_API_KEY, domain: process.env.ADAPTER_DOMAIN, host: 'api.eu.mailgun.net'});
 let MobileDetect    = require('mobile-detect');
+const stripe        = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const cors          = require('cors');
 
-Parse.initialize(process.env.APP_ID);
+// CORS origin = https://expressjs.com/en/resources/middleware/cors.html
+// var whitelist = [
+//   'http://localhost/', 
+//   '127.0.0.1',
+//   'https://weeclik-webapp.herokuapp.com/', 
+//   'https://weeclik-webapp-dev.herokuapp.com/', 
+//   'https://www.weeclik.com/'
+// ]
+// var corsOptions = {
+//   origin: function (origin, callback) {
+//     if (whitelist.indexOf(origin) !== -1) {
+//       callback(null, true);
+//     } else {
+//       console.log(origin)
+//       callback(new Error('Not allowed by CORS'));
+//     }
+//   }
+// }
+
+Parse.initialize(process.env.APP_ID, null, process.env.MASTER_KEY);
+Parse.masterKey = process.env.MASTER_KEY;
 Parse.serverURL = process.env.SERVER_URL;
 
 // Configuration Server
 app.use(bodyParser.json({ type: 'application/json' }));
+app.use(bodyParser.urlencoded({ extended: true }));
 
 moment().format();
 
 let databaseUri = process.env.DATABASE_URI || process.env.MONGODB_URI;
 
 if (!databaseUri) { 
-    console.log('DATABASE_URI not specified, falling back to localhost.');
+  console.log('DATABASE_URI not specified, falling back to localhost.');
+} else {
+  console.log('DB URI: ' + databaseUri);
 }
 
 let options = { allowInsecureHTTP: true };
@@ -61,15 +91,15 @@ let gcsAdapter = new GCSAdapter(gcsOptions);
 console.log(process.env.MASTER_KEY)
 
 let api = new ParseServer({
-    databaseURI:        databaseUri,
-    cloud:              process.env.CLOUD_CODE_MAIN     || __dirname + '/cloud/main.js',
+    databaseURI:        databaseUri || 'mongodb://localhost:27017/weeclik',
+    cloud:              process.env.CLOUD_CODE_MAIN || __dirname + '/cloud/main.js',
     appId:              process.env.APP_ID,
     masterKey:          process.env.MASTER_KEY,
-    javascriptKey:      process.env.JAVASCRIPT_KEY,
     filesAdapter:       gcsAdapter,
     serverURL:          process.env.SERVER_URL,
     publicServerURL:    process.env.PUBLIC_URL,
     appName:            process.env.APP_NAME,
+    maxUploadSize:      process.env.MAX_UPLOAD_SIZE || "1024mb", // 1024 MB = 1 Go
     allowClientClassCreation: true,
       // Enable email verification
       // try to use this (avantage langue) // "@ngti/parse-server-mailgun": "^2.4.18",
@@ -78,7 +108,7 @@ let api = new ParseServer({
           module: 'parse-server-mailgun',
           options: {
           // The address that your emails come from
-          fromAddress: 'Herrick de l\'équipe Weeclik <contact@herrick-wolber.fr>',
+          fromAddress: 'Herrick de l\'équipe Weeclik <contact@weeclik.com>',
           // Your domain from mailgun.com
           domain: process.env.ADAPTER_DOMAIN,
           // Mailgun host (default: 'api.mailgun.net'). 
@@ -117,7 +147,7 @@ let api = new ParseServer({
               }
           }
       }
-  }
+    }
 });
 
 // Client-keys like the javascript key or the .NET key are not necessary with parse-server
@@ -126,6 +156,9 @@ let api = new ParseServer({
 
 // Serve static assets from the /public folder
 app.use('/public', express.static(path.join(__dirname, '/public')));
+app.get('/apple-app-site-association', (req, res) => {
+  res.status(200).sendFile(path.join(__dirname, 'apple-app-site-association'));
+});
 
 // Serve the Parse API on the /parse URL prefix
 let mountPath = process.env.PARSE_MOUNT;
@@ -134,10 +167,13 @@ app.use(mountPath, api);
 // make the Parse Dashboard available at /dashboard
 app.use('/dashboard', dashboard);
 
+// Allow all cors origin
+app.use(cors());
+
 let port = process.env.PORT || 1337;
 let httpServer = require('http').createServer(app);
 httpServer.listen(port, function() {
-    console.log('Running weekclik server on port ' + port);
+  console.log('Running weeclik server on port ' + port);
 });
 
 app.get('/cgu/', (req, res) => {
@@ -151,28 +187,26 @@ app.get('/politique-confidentialite/', (req, res) => {
 // Toute les heure à 0 minute
 // '* * 1 * *' tous les mois ?
 // '* * * * *'
-cron.schedule('0 * * * *', () => {
+// cron.schedule('*/10 * * * * *', async () => {
+cron.schedule('0 * * * *', async () => {
   // Chaque heure à 0 (01:00, 15:00, etc)
   // TODO: Ecrire fonction pour ecriture de log
   // TODO: Envoi de mail à chaque commerce passant en mode desactivé (user & admin)
-  console.log(`Function executé à ${moment()}`)
-  Parse.Cloud.run('retrieveAllObjects', { object_type: "Commerce", only_objectId: false })
-  .then((objects) => {
-      console.log("Successfully retrieved " + objects.length + " commerces.");
-      for (let i = 0; i < objects.length; i++) {
-          let object = objects[i];
-          if (object.get('endSubscription') !== undefined) {
-              if (moment(object.get('endSubscription')).isValid()) {
-                  let day =  moment(object.get('endSubscription'))
-                  if (moment().isSameOrAfter(day)) {
-                      console.log(object.get('nomCommerce') +  ' passed date')
-                      object.set("statutCommerce", 0)
-                      object.save()
-                  }
-              }
-          }
+  console.log(`Function executé à ${moment()}`);
+  const commerces = await Parse.Cloud.run('endedSubscription');
+  console.log("Successfully retrieved " + commerces.length + " commerces.");
+
+  for (let i = 0; i < commerces.length; i++) {
+    let object = commerces[i];
+    if (moment(object.get('endSubscription')).isValid()) {
+      let day =  moment(object.get('endSubscription'));
+      if (moment().isSameOrAfter(day)) {
+        console.log(object.get('nomCommerce') +  ' passed date');
+        object.set("statutCommerce", 0);
+        await object.save(null, {useMasterKey:true});
       }
-  });
+    }
+  }
 });
 
 app.post('/send-error-mail', (req, res) => {
@@ -205,6 +239,74 @@ app.post('/send-error-mail', (req, res) => {
         })
     }
 })
+
+// Match the raw body to content type application/json
+app.post('/webhook', (request, response) => {
+    let event;
+    try {event = request.body;}
+    catch (err) {response.status(400).send(`Webhook Error: ${err.message}`);}
+    console.log(event)
+    // Handle the event
+    switch (event.type) {
+    case 'payment_intent.succeeded':
+        const paymentIntent = event.data.object;
+        response.json({received: true, method : event.data.object});
+        break;
+    case 'payment_method.attached':
+        response.json({received: true, method : event.data.object});
+        break;
+    case 'payment_intent.created':
+        response.json({received: true, method : event.data.object});
+        break;
+    case 'charge.succeeded':
+        response.json({received: true, method : event.data.object});
+        break;
+    default:
+        // Unexpected event type
+        console.log('Stripe event not handled by server')
+        console.log(event.type)
+        return response.status(400).end();
+    }
+  });
+
+app.post("/charge", (req, res) => {    
+    if (req.body.object === 'event') {return;}
+
+    stripe.charges.create({
+        amount: 32999,
+        currency: "eur",
+        description: "Abonnement annuel d'un commerce sur Weeclik (web & mobile)",
+        source: req.body.token.id
+    }).then(response => {
+        res.json({ok: true, message: 'success', response: response});
+    }).catch(error => {
+        const message = error.type + ' : ' + error.message;
+        console.log(message)
+        switch (error.type) {
+            case 'StripeCardError':
+              // A declined card error
+              error.message; // => e.g. "Your card's expiration year is invalid."
+              break;
+            case 'StripeInvalidRequestError':
+                    error.message;
+              // Invalid parameters were supplied to Stripe's API
+              break;
+            case 'StripeAPIError':
+              // An error occurred internally with Stripe's API
+              break;
+            case 'StripeConnectionError':
+              // Some kind of error occurred during the HTTPS communication
+              break;
+            case 'StripeAuthenticationError':
+              // You probably used an incorrect API key
+              break;
+            case 'StripeRateLimitError':
+              // Too many requests hit the API too quickly
+              break;
+          }
+        res.status(500).json({ok: false, message: 'error', response: message});
+    });
+});
 
 app.get('/valid-email/:email', (req, res) => {
     console.log(`Test address mail valid : ${req.params.email}`)

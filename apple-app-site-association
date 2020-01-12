@@ -1,0 +1,21 @@
+{
+  "webcredentials": {
+        "apps": [
+            "2TDUX39LX8.com.reddit.Reddit",
+            "6X3B423LNC.com.reddit.inhouse.dev",
+        ]
+    },
+    "applinks": {
+      "apps": [],
+      "details": [
+        {
+          "appID": "2TDUX39LX8.com.reddit.Reddit",
+          "paths": ["*"]
+        },
+        {
+          "appID": "6X3B423LNC.com.reddit.inhouse.dev",
+          "paths": ["*"]
+        }
+      ]
+    }
+  }
