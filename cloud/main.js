@@ -101,9 +101,11 @@ Parse.Cloud.afterSave("Commerce", (request) => {
 
 Parse.Cloud.define('endedSubscription', async (request) => {
     const query = new Parse.Query("Commerce");
-    // Where current date is after subscription date
-    query.exists("endSubscription");
-    query.lessThan("endSubscription", new Date());
+
+    query.exists("endSubscription");                // End of subscription is not null
+    query.lessThan("endSubscription", new Date());  // Current date is after subscription date 
+    query.equalTo("statutCommerce", 1);             // Status of commerce == paid
+
     const result = await query.find();
     return result;
 });
