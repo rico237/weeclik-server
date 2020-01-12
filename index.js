@@ -41,7 +41,8 @@ const cors          = require('cors');
 //   }
 // }
 
-Parse.initialize(process.env.APP_ID, process.env.MASTER_KEY);
+Parse.initialize(process.env.APP_ID, null, process.env.MASTER_KEY);
+Parse.masterKey = process.env.MASTER_KEY;
 Parse.serverURL = process.env.SERVER_URL;
 
 // Configuration Server
