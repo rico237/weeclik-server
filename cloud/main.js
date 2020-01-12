@@ -70,7 +70,8 @@ Parse.Cloud.afterSave("Commerce", (request) => {
         var bannedWords = [
         "au", "un", "une", "à", "il", "elle", "ils", "elles", "mais", "où", "est", "donc", "or", "ni", "car", " ",
         "de", "la", "et", "du", "aux", "le", "se", "fait", "avec", "en", "des", "pas", "deux", "\n",
-        "\t", "\n\t", "<br>", "<br/>", "<br />", "l", "a", "n", "test"
+        "\t", "\n\t", "<br>", "<br/>", "<br />", "l", "a", "n", "test", "description", "sappuie", "sur", "pour",
+        "les", "proposer", "très"
         ];
 
         var sorted = [];
@@ -101,8 +102,11 @@ Parse.Cloud.afterSave("Commerce", (request) => {
 
 Parse.Cloud.define('endedSubscription', async (request) => {
     const query = new Parse.Query("Commerce");
-    // Where current date is after subscription date
-    query.lessThan("endSubscription", new Date());
+
+    query.exists("endSubscription");                // End of subscription is not null
+    query.lessThan("endSubscription", new Date());  // Current date is after subscription date 
+    query.equalTo("statutCommerce", 1);             // Status of commerce == paid
+
     const result = await query.find();
     return result;
 });

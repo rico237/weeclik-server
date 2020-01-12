@@ -41,7 +41,8 @@ const cors          = require('cors');
 //   }
 // }
 
-Parse.initialize(process.env.APP_ID);
+Parse.initialize(process.env.APP_ID, null, process.env.MASTER_KEY);
+Parse.masterKey = process.env.MASTER_KEY;
 Parse.serverURL = process.env.SERVER_URL;
 
 // Configuration Server
@@ -191,30 +192,21 @@ cron.schedule('*/10 * * * * *', async () => {
   // Chaque heure à 0 (01:00, 15:00, etc)
   // TODO: Ecrire fonction pour ecriture de log
   // TODO: Envoi de mail à chaque commerce passant en mode desactivé (user & admin)
-  console.log(`Function executé à ${moment()}`)
+  console.log(`Function executé à ${moment()}`);
   const commerces = await Parse.Cloud.run('endedSubscription');
-  console.log(commerces)
-  // Parse.Cloud.run('commerceOutdatedSubscription')
-  // .then((objects) => {
-  //   console.log(objects);
-  //   console.log("Successfully retrieved " + objects.length + " commerces.");
-  //   for (let i = 0; i < objects.length; i++) {
-  //     let object = objects[i];
-  //     if (object.get('endSubscription') !== undefined) {
-  //       if (moment(object.get('endSubscription')).isValid()) {
-  //         let day =  moment(object.get('endSubscription'))
-  //         if (moment().isSameOrAfter(day)) {
-  //           console.log(object.get('nomCommerce') +  ' passed date')
-  //           object.set("statutCommerce", 0)
-  //           object.save()
-  //         }
-  //       }
-  //     }
-  //   }
-  // }).catch((error) => {
-  //   console.log("ERROR");
-  //   console.log(error);
-  // });
+  console.log("Successfully retrieved " + commerces.length + " commerces.");
+
+  for (let i = 0; i < commerces.length; i++) {
+    let object = commerces[i];
+    if (moment(object.get('endSubscription')).isValid()) {
+      let day =  moment(object.get('endSubscription'));
+      if (moment().isSameOrAfter(day)) {
+        console.log(object.get('nomCommerce') +  ' passed date');
+        object.set("statutCommerce", 0);
+        await object.save(null, {useMasterKey:true});
+      }
+    }
+  }
 });
 
 app.post('/send-error-mail', (req, res) => {
