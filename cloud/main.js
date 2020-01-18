@@ -1,3 +1,10 @@
+var NodeGeocoder = require('node-geocoder');
+var geocoder = NodeGeocoder({
+    provider: 'openstreetmap',
+    httpAdapter: 'https',
+    formatter: null
+  });
+
 // TODO: After save on video to generate video thumbnail & description as 'video presentation {{ nom_du_commerce }}'
 // TODO: Devide cloud code into multiple controller class, like Commerce.js (before, after and webhooks)
 
@@ -56,11 +63,29 @@ Parse.Cloud.afterDelete("Commerce", (request) => {
 //     if ( parseObject.getPublicWriteAccess() ) {throw "The public is allowed to change this object, please set the proper ACL";}
 // });
 
+Parse.Cloud.define('nullPosition', async (request) => {
+    const query = new Parse.Query("Commerce");
+    query.equalTo("position", new Parse.GeoPoint({latitude: 0.0, longitude: 0.0}) );             // Status of commerce == paid
+    const result = await query.find();
+    return result;
+});
+
 Parse.Cloud.afterSave("Commerce", (request) => {
     const parseObject   = request.object;
     const description   = parseObject.get("description");
     const brouillon     = parseObject.get("brouillon");
-    const nomCommerce   = parseObject.get("nomCommerce"); //TODO: changer le nom de la description de la video
+    const position      = parseObject.get("position");
+
+    if (position.latitude === 0 || position.longitude === 0) {
+        const address = parseObject.get("adresse");
+        geocoder.geocode(address)
+                .then(response => {
+                    console.log(response);
+                    const obj = JSON.parse(response);
+                    parseObject.set(new Parse.GeoPoint({latitude: obj.latitude, longitude: obj.longitude}))
+                })
+                .catch(error => { console.log(error); });
+    }
 
     // Set blank and empty values
     if (brouillon === undefined || brouillon === null || typeof brouillon === 'undefined') 
