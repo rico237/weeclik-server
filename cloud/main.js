@@ -76,13 +76,19 @@ Parse.Cloud.afterSave("Commerce", (request) => {
     const brouillon     = parseObject.get("brouillon");
     const position      = parseObject.get("position");
 
-    if (position.latitude === 0 || position.longitude === 0) {
+    if (position.latitude === 0 && position.longitude === 0) {
         const address = parseObject.get("adresse");
         geocoder.geocode(address)
                 .then(response => {
-                    console.log(response);
-                    const obj = JSON.parse(response);
-                    parseObject.set(new Parse.GeoPoint({latitude: obj.latitude, longitude: obj.longitude}))
+                    const responseArray = JSON.parse(JSON.stringify(response));
+                    if (responseArray.length !== 0) {
+                        const firstResponse = responseArray[0];
+                        
+                        parseObject.set("position", new Parse.GeoPoint({
+                            latitude: firstResponse.latitude, 
+                            longitude: firstResponse.longitude
+                        }));
+                    }
                 })
                 .catch(error => { console.log(error); });
     }
