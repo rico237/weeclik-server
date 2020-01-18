@@ -222,19 +222,37 @@ cron.schedule('*/10 * * * * *', async () => {
   console.log(`Function ${functionName} executé à ${moment()}`);
   const commerces = await Parse.Cloud.run(functionName);
   console.log("Successfully retrieved " + commerces.length + " commerces.");
+  let parseObject = commerces[0];
 
-  for (let i = 0; i < commerces.length; i++) {
-    let parseObject = commerces[i];
-    const address = parseObject.get("adresse");
+  const address = parseObject.get("adresse");
     geocoder.geocode(address)
             .then(response => {
                 console.log(response);
-                console.log("Object")
-                console.log(response[0].latitude);
+                
+                console.log("Object");
+                const obj = JSON.parse(JSON.stringify(response))
+                console.log(obj.latitude);
                 // parseObject.set(new Parse.GeoPoint({latitude: obj.latitude, longitude: obj.longitude}))
+                console.log(response.latitude);
             })
             .catch(error => { console.log(error); });
-  }
+
+
+  // for (let i = 0; i < commerces.length; i++) {
+  //   let parseObject = commerces[i];
+  //   const address = parseObject.get("adresse");
+  //   geocoder.geocode(address)
+  //           .then(response => {
+  //               console.log(response);
+                
+  //               console.log("Object");
+  //               const obj = JSON.parse(JSON.stringify(response))
+  //               console.log(obj.latitude);
+  //               // parseObject.set(new Parse.GeoPoint({latitude: obj.latitude, longitude: obj.longitude}))
+  //               console.log(response.latitude);
+  //           })
+  //           .catch(error => { console.log(error); });
+  // }
 });
 
 app.post('/send-error-mail', (req, res) => {
