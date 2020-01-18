@@ -22,6 +22,12 @@ let MobileDetect    = require('mobile-detect');
 const stripe        = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const cors          = require('cors');
 
+var NodeGeocoder = require('node-geocoder');
+var geocoder = NodeGeocoder({
+    provider: 'openstreetmap',
+    httpAdapter: 'https',
+    formatter: null
+  });
 // CORS origin = https://expressjs.com/en/resources/middleware/cors.html
 // var whitelist = [
 //   'http://localhost/', 
@@ -192,8 +198,9 @@ cron.schedule('0 * * * *', async () => {
   // Chaque heure à 0 (01:00, 15:00, etc)
   // TODO: Ecrire fonction pour ecriture de log
   // TODO: Envoi de mail à chaque commerce passant en mode desactivé (user & admin)
-  console.log(`Function executé à ${moment()}`);
-  const commerces = await Parse.Cloud.run('endedSubscription');
+  const functionName = 'endedSubscription';
+  console.log(`Function ${functionName} executé à ${moment()}`);
+  const commerces = await Parse.Cloud.run(functionName);
   console.log("Successfully retrieved " + commerces.length + " commerces.");
 
   for (let i = 0; i < commerces.length; i++) {
@@ -206,6 +213,28 @@ cron.schedule('0 * * * *', async () => {
         await object.save(null, {useMasterKey:true});
       }
     }
+  }
+});
+
+cron.schedule('*/10 * * * * *', async () => {
+
+  const functionName = 'nullPosition';
+  console.log(`Function ${functionName} executé à ${moment()}`);
+  const commerces = await Parse.Cloud.run(functionName);
+  console.log("Successfully retrieved " + commerces.length + " commerces.");
+
+  for (let i = 0; i < commerces.length; i++) {
+    let parseObject = commerces[i];
+    const address = parseObject.get("adresse");
+    geocoder.geocode(address)
+            .then(response => {
+                console.log(response);
+                const obj = JSON.parse(response);
+                console.log(response.latitude);
+                console.log(obj.latitude);
+                // parseObject.set(new Parse.GeoPoint({latitude: obj.latitude, longitude: obj.longitude}))
+            })
+            .catch(error => { console.log(error); });
   }
 });
 
