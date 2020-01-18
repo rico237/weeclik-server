@@ -229,8 +229,8 @@ cron.schedule('*/10 * * * * *', async () => {
     geocoder.geocode(address)
             .then(response => {
                 console.log(response);
-                const obj = JSON.parse(response);
-                console.log(response.latitude);
+                const obj = JSON.parse(response[0]);
+                console.log("Object")
                 console.log(obj.latitude);
                 // parseObject.set(new Parse.GeoPoint({latitude: obj.latitude, longitude: obj.longitude}))
             })
