@@ -216,28 +216,6 @@ cron.schedule('0 * * * *', async () => {
   }
 });
 
-cron.schedule('*/10 * * * * *', async () => {
-
-  const functionName = 'nullPosition';
-  console.log(`Function ${functionName} executé à ${moment()}`);
-  const commerces = await Parse.Cloud.run(functionName);
-  console.log("Successfully retrieved " + commerces.length + " commerces.");
-
-  for (let i = 0; i < commerces.length; i++) {
-    let parseObject = commerces[i];
-    const address = parseObject.get("adresse");
-    geocoder.geocode(address)
-            .then(response => {
-                console.log(response);
-                const obj = JSON.parse(response);
-                console.log(response.latitude);
-                console.log(obj.latitude);
-                // parseObject.set(new Parse.GeoPoint({latitude: obj.latitude, longitude: obj.longitude}))
-            })
-            .catch(error => { console.log(error); });
-  }
-});
-
 app.post('/send-error-mail', (req, res) => {
   console.log(req.body);
   if (req.body.content_message) {
