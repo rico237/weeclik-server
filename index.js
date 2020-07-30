@@ -274,7 +274,7 @@ app.post("/charge", (req, res) => {
     stripe.charges.create({
         amount: process.env.ABONNEMENT_PRICE_ONE_YEAR,
         currency: "eur",
-        description: "Abonnement annuel d'un commerce sur Weeclik (web & mobile)",
+        description: "Abonnement annuel d'un commerce sur Weeclik (web)",
         source: req.body.token.id
     }).then(response => {
         res.json({ok: true, message: 'success', response: response});
