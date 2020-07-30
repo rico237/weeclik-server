@@ -280,7 +280,7 @@ app.post("/charge", (req, res) => {
     if (req.body.object === 'event') {return;}
 
     stripe.charges.create({
-        amount: 32999,
+        amount: 99,
         currency: "eur",
         description: "Abonnement annuel d'un commerce sur Weeclik (web & mobile)",
         source: req.body.token.id
