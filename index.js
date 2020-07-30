@@ -182,14 +182,6 @@ httpServer.listen(port, function() {
   console.log('Running weeclik server on port ' + port);
 });
 
-app.get('/cgu/', (req, res) => {
-  res.status(200).send('cgu')
-})
-
-app.get('/politique-confidentialite/', (req, res) => {
-  res.status(200).send('politique-confidentialite')
-})
-
 // Toute les heure à 0 minute
 // '* * 1 * *' tous les mois ?
 // '* * * * *'
