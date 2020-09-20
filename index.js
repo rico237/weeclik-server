@@ -1,7 +1,3 @@
-// require('dotenv').config({ 
-//   debug: process.env.DEBUG,
-//   path: 'dev.env'
-// })
 require('dotenv').config()
 
 let express         = require('express');
