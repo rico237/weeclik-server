@@ -27,24 +27,6 @@ var geocoder = NodeGeocoder({
     httpAdapter: 'https',
     formatter: null
   });
-// CORS origin = https://expressjs.com/en/resources/middleware/cors.html
-// var whitelist = [
-//   'http://localhost/', 
-//   '127.0.0.1',
-//   'https://weeclik-webapp.herokuapp.com/', 
-//   'https://weeclik-webapp-dev.herokuapp.com/', 
-//   'https://www.weeclik.com/'
-// ]
-// var corsOptions = {
-//   origin: function (origin, callback) {
-//     if (whitelist.indexOf(origin) !== -1) {
-//       callback(null, true);
-//     } else {
-//       console.log(origin)
-//       callback(new Error('Not allowed by CORS'));
-//     }
-//   }
-// }
 
 Parse.initialize(process.env.APP_ID, null, process.env.MASTER_KEY);
 Parse.masterKey = process.env.MASTER_KEY;

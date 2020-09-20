@@ -58,11 +58,6 @@ Parse.Cloud.afterDelete("Commerce", (request) => {
     });
 });
 
-// Parse.Cloud.beforeSave("Commerce", (request) => {
-//     const parseObject = request.object;
-//     if ( parseObject.getPublicWriteAccess() ) {throw "The public is allowed to change this object, please set the proper ACL";}
-// });
-
 Parse.Cloud.define('nullPosition', async (request) => {
     const query = new Parse.Query("Commerce");
     query.equalTo("position", new Parse.GeoPoint({latitude: 0.0, longitude: 0.0}) );             // Status of commerce == paid
@@ -141,45 +136,6 @@ Parse.Cloud.define('endedSubscription', async (request) => {
     const result = await query.find();
     return result;
 });
-
-// Parse.Cloud.define("retrieveAllObjects", (request) => {
-//     var result     = [];
-//     var chunk_size = 1000;
-//     var processCallback = (res) => {
-//         result = result.concat(res);
-//         console.log(result)
-//         if (res.length === chunk_size) {
-//             process(res[res.length-1].id);
-//         } else {
-//             console.log(result)
-//             return result
-//             // status.success(result);
-//         }
-//     };
-//     var process = (skip) => {
-//         var query = new Parse.Query(request.params.object_type);
-//         if (skip) {
-//             query.greaterThan("objectId", skip);
-//         }
-//         if (request.params.update_at) {
-//             query.greaterThan("updatedAt", request.params.update_at);
-//         }
-//         if (request.params.only_objectId) {
-//             query.select("objectId");
-//         }
-//         query.limit(chunk_size);
-//         query.ascending("objectId");
-//         query.find().then(res => {
-//             console.log(res)
-//             processCallback(res);
-//         })
-//         .catch(error => {
-//             console.log(error)
-//             status.error("query unsuccessful, length of result " + result.length + ", error:" + error.code + " " + error.message);
-//         });
-//     };
-//     process(false);
-// });
 
 // Parse.Cloud.define("sendOutdatedEmail", (request) => {
 //   // Get access to Parse Server's cache
