@@ -254,41 +254,48 @@ app.post("/share", (req, res) => {
 		var query = new Parse.Query(Parse.Object.extend("Commerce"));
 		query.get(commerceId).then((commerce) => {
 			commerce.increment("nombrePartages");
-			commerce.save();
+			commerce.save(null, {useMasterKey: true}).then((commerceSaved) => {
+				// Fetch user
+				var userQuery = new Parse.Query(Parse.User);
+				userQuery.get(userId).then((user) => {
+					// TODO: check if values are nil
+					var shares = user.get("mes_partages");
+					if (shares === undefined || shares === null || typeof shares === 'undefined') {
+						// Date is null
+						user.set("mes_partages", []);
+						user.set("mes_partages_dates", []);
+					} else {
+						// Data already exists
+						user.add("mes_partages", commerce.id);
+						user.add("mes_partages_dates", new Date());
+					}
 
-			// Fetch user
-			var userQuery = new Parse.Query(Parse.User);
-			userQuery.get(userId).then((user) => {
-				// TODO: check if values are nil
-				var shares = user.get("mes_partages");
-				if (shares === undefined || shares === null || typeof shares === 'undefined') {
-					// Date is null
-					user.set("mes_partages", []);
-					user.set("mes_partages_dates", []);
-				} else {
-					// Data already exists
-					user.add("mes_partages", commerce.id);
-					user.add("mes_partages_dates", new Date());
-				}
-
-				user.save().then((user) => {
-					return res.status(200).send({
-						success: 'true',
-						message: 'Sharing of commerce: '+ commerce.id + 'has been done successfully'
+					user.save(null, {useMasterKey: true}).then((user) => {
+						return res.status(200).send({
+							success: 'true',
+							message: 'Sharing of commerce: '+ commerce.id + 'has been done successfully'
+						});
+					}, (errorSavingUser) => {
+						return res.status(400).send({
+							success: 'false',
+							message: 'Updating of user did fail. Original error => '+ errorSavingUser.message
+						});
 					});
-				}, (errorSavingUser) => {
+
+				}, (userError) => {
 					return res.status(404).send({
 						success: 'false',
-						message: 'Updating of user did fail. Original error => '+ errorSavingUser.message
+						message: 'Loading of user error. Original error => '+ userError.message
 					});
 				});
-
-			}, (userError) => {
-				return res.status(404).send({
+			}, (savingError) => {
+				return res.status(400).send({
 					success: 'false',
-					message: 'Loading of user error. Original error => '+ userError.message
+					message: 'Updating of commerce did fail. Original error => '+ errorSavingUser.message
 				});
 			});
+
+			
 		}, (commerceError) => {
 			return res.status(404).send({
 				success: 'false',
