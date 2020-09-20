@@ -14,7 +14,6 @@ const cron          = require('node-cron');
 let moment          = require('moment');
 let Parse           = require('parse/node');
 const resolve       = require('path').resolve;
-const createError   = require('http-errors'); // Gestion des erreurs
 const bodyParser    = require('body-parser'); // Parse incoming request bodies
 let GCSAdapter      = require('@parse/gcs-files-adapter');
 let mailgun         = require('mailgun-js')({apiKey: process.env.ADAPTER_API_KEY, domain: process.env.ADAPTER_DOMAIN, host: 'api.eu.mailgun.net'});
@@ -266,7 +265,7 @@ app.post('/webhook', (request, response) => {
         console.log(event.type)
         return response.status(400).end();
     }
-  });
+ });
 
 app.post("/charge", (req, res) => {    
     if (req.body.object === 'event') {return;}
@@ -306,78 +305,3 @@ app.post("/charge", (req, res) => {
         res.status(500).json({ok: false, message: 'error', response: message});
     });
 });
-
-app.get('/valid-email/:email', (req, res) => {
-  console.log(`Test address mail valid : ${req.params.email}`)
-  // TODO: change
-  let validator = require('mailgun-validate-email')(process.env.MAILGUN_PUBKEY)
-  validator(req.params.email, (err, result) => {
-    if(err) {
-      // TODO : Send Mail to admin for errors
-      // email was not valid
-      // TODO: rajouter un test sur le type d'erreur et retourner le bon type d'erreur
-      return res.status(400).send({
-        success: 'false',
-        message: 'Invalid mail or server error. Please contact admin fast.',
-      })
-    } else {
-      // TODO: send admin email for high or medium risk email
-      return res.status(200).send({
-        success: 'true',
-        message: result,
-      });
-    }
-  })
-});
-
-app.get('/redirect-to-store', (req, res) => {
-    let md = new MobileDetect(req.headers['user-agent'])
-    // TODO: [1] show a rendered html page for unknown devices
-    // TODO: [2] Add can open url - deep linking / universal links (better for ios)
-    // 
-    // https://github.com/mderazon/node-deeplink
-    // https://stackoverflow.com/questions/32689483/ios9-try-to-open-app-via-scheme-if-possible-or-redirect-to-app-store-otherwise/32774701#32774701
-    // https://www.raywenderlich.com/6080-universal-links-make-the-connection
-    
-    // IF NOT A BOT
-    if (!md.is('bot')) {
-        if (md.phone() !== null || md.mobile() !== null) {
-            console.log(`OS collected : ${md.os}`)
-            if (md.os() === 'AndroidOS') {
-                console.log('Android')
-                return res.redirect(301, process.env.ANDROID_LINK);
-            } else if (md.os() === 'iOS') {
-                console.log('IOS')
-                return res.redirect(301, process.env.IOS_LINK);
-            } else {
-                const data = {
-                    from: 'Web server <no-reply@weeclik.com>',
-                    to: 'contact@herrick-wolber.fr',
-                    subject: 'redirect to store problem',
-                    text: JSON.stringify(md)
-                };
-
-                mailgun.messages().send(data, (error, body) => {
-                    console.log(body);
-                });
-                // HERE [1] 
-                return res.status(200).send("Appareil iconnu")
-            }
-        } else {
-            const data = {
-                from: 'Web server <no-reply@weeclik.com>',
-                to: 'contact@herrick-wolber.fr',
-                subject: 'redirect to store problem',
-                text: JSON.stringify(md)
-            };
-
-            mailgun.messages().send(data, (error, body) => {
-                console.log(body);
-            });
-
-            console.log(JSON.stringify(md))
-            // HERE [1] 
-            return res.status(200).send(`L'appareil n'est pas un téléphone <br><br>${JSON.stringify(md)}`)
-        }
-    } 
-})
