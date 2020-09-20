@@ -13,7 +13,6 @@ const resolve       = require('path').resolve;
 const bodyParser    = require('body-parser'); // Parse incoming request bodies
 let GCSAdapter      = require('@parse/gcs-files-adapter');
 let mailgun         = require('mailgun-js')({apiKey: process.env.ADAPTER_API_KEY, domain: process.env.ADAPTER_DOMAIN, host: 'api.eu.mailgun.net'});
-let MobileDetect    = require('mobile-detect');
 const stripe        = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const cors          = require('cors');
 
