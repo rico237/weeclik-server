@@ -211,7 +211,7 @@ app.post('/send-error-mail', (req, res) => {
     // TODO: rajouter un test sur le type d'erreur et retourner le bon type d'erreur
     return res.status(422).send({
       success: 'false',
-      message: 'Missing parameter : content_message is undefined',
+      message: 'Missing parameter : content_message is undefined'
     })
   }
 });
@@ -244,6 +244,67 @@ app.post('/webhook', (request, response) => {
         return response.status(400).end();
     }
  });
+
+app.post("/share", (req, res) => {    
+    console.log("/share commerce endpoint");
+    console.log("User: "+ req.body.userId + " is sharing commerce: " + req.body.commerceId);
+    const commerceId = req.body.commerceId;
+    const userId = req.body.userId;
+
+    if (commerceId && userId) {
+		var query = new Parse.Query(Parse.Object.extend("Commerce"));
+		query.get(commerceId).then((commerce) => {
+			commerce.increment("nombrePartages");
+			commerce.save();
+
+			// Fetch user
+			var userQuery = new Parse.Query(Parse.User);
+			userQuery.get(userId).then((user) => {
+				// TODO: check if values are nil
+				var shares = user.get("mes_partages");
+				if (shares === undefined || shares === null || typeof shares === 'undefined') {
+					// Date is null
+					user.set("mes_partages", []);
+					user.set("mes_partages_dates", []);
+				} else {
+					// Data already exists
+					user.add("mes_partages", commerce.id);
+					user.add("mes_partages_dates", new Date());
+				}
+
+				user.save().then((user) => {
+					return res.status(200).send({
+						success: 'true',
+	        			message: 'Sharing of commerce: '+ commerce.id + 'has been done successfully'
+					});
+				}, (errorSavingUser) => {
+					return res.status(404).send({
+						success: 'false',
+		        		message: 'Updating of user did fail. Original error => '+ errorSavingUser.message
+					});
+				});
+
+			}, (userError) => {
+				return res.status(404).send({
+					success: 'false',
+	        		message: 'Loading of user error. Original error => '+ userError.message
+				});
+			});
+		}, (commerceError) => {
+			return res.status(404).send({
+				success: 'false',
+        		message: 'Loading of commerce error. Original error => '+ commerceError.message
+			});
+		});
+
+    } else {
+      	return res.status(400).send({
+        	success: 'false',
+        	message: 'missing information such as userId or commerceId'
+      	});
+    }
+    
+});
 
 app.post("/charge", (req, res) => {    
     if (req.body.object === 'event') {return;}
