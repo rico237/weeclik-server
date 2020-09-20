@@ -16,13 +16,6 @@ let mailgun         = require('mailgun-js')({apiKey: process.env.ADAPTER_API_KEY
 const stripe        = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const cors          = require('cors');
 
-var NodeGeocoder = require('node-geocoder');
-var geocoder = NodeGeocoder({
-	provider: 'openstreetmap',
-	httpAdapter: 'https',
-	formatter: null
-});
-
 Parse.initialize(process.env.APP_ID, null, process.env.MASTER_KEY);
 Parse.masterKey = process.env.MASTER_KEY;
 Parse.serverURL = process.env.SERVER_URL;
@@ -34,7 +27,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 moment().format();
 
 let databaseUri = process.env.DATABASE_URI || process.env.MONGODB_URI;
-
 if (!databaseUri) { 
 	console.log('DATABASE_URI not specified, falling back to localhost.');
 } else {
@@ -42,7 +34,6 @@ if (!databaseUri) {
 }
 
 let options = { allowInsecureHTTP: true };
-
 let dashboard = new ParseDashboard({
 	"apps": [
 	{
@@ -69,9 +60,6 @@ let gcsOptions = {
 	"directAccess": false
 }
 let gcsAdapter = new GCSAdapter(gcsOptions);
-
-console.log(process.env.MASTER_KEY)
-
 let api = new ParseServer({
 	databaseURI:        databaseUri || 'mongodb://localhost:27017/weeclik',
 	cloud:              process.env.CLOUD_CODE_MAIN || __dirname + '/cloud/main.js',
@@ -131,11 +119,6 @@ let api = new ParseServer({
       }
   }
 });
-
-// Client-keys like the javascript key or the .NET key are not necessary with parse-server
-// If you wish you require them, you can set them as options in the initialization above:
-// javascriptKey, restAPIKey, dotNetKey, clientKey
-
 // Serve static assets from the /public folder
 app.use('/public', express.static(path.join(__dirname, '/public')));
 app.get('/apple-app-site-association', (req, res) => {
@@ -184,35 +167,34 @@ cron.schedule('0 * * * *', async () => {
 	}
 });
 
-	app.post('/send-error-mail', (req, res) => {
-		console.log(req.body);
-		if (req.body.content_message) {
-			const data = {
-				from: 'iOS APP <no-reply@weeclik.com>',
-				to: 'contact@herrick-wolber.fr',
-				subject: 'Error in iOS App',
-				text: req.body.content_message
-			};
+app.post('/send-error-mail', (req, res) => {
+	console.log(req.body);
+	if (req.body.content_message) {
+		const data = {
+			from: 'iOS APP <no-reply@weeclik.com>',
+			to: 'contact@herrick-wolber.fr',
+			subject: 'Error in iOS App',
+			text: req.body.content_message
+		};
 
-			mailgun.messages().send(data, (error, body) => {
-				if (error) {
-					return error
-				} else {
-					return res.status(200).send({
-						success: 'true',
-						message: 'Message envoyé avec succès',
-					});
-				}
-				console.log(body);
+		mailgun.messages().send(data, (error, body) => {
+			if (error) {
+				return error
+			} else {
+				return res.status(200).send({
+					success: 'true',
+					message: 'Message envoyé avec succès',
+				});
+			}
+			console.log(body);
 
-			});
-		} else {
-    // TODO: rajouter un test sur le type d'erreur et retourner le bon type d'erreur
-    return res.status(422).send({
-    	success: 'false',
-    	message: 'Missing parameter : content_message is undefined'
-    })
-}
+		});
+	} else {
+	    return res.status(422).send({
+	    	success: 'false',
+	    	message: 'Missing parameter : content_message is undefined'
+	    })
+	}
 });
 
 // Match the raw body to content type application/json

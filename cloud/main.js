@@ -1,12 +1,12 @@
+// TODO: After save on video to generate video thumbnail & description as 'video presentation {{ nom_du_commerce }}'
+// TODO: Devide cloud code into multiple controller class, like Commerce.js (before, after and webhooks)
+
 var NodeGeocoder = require('node-geocoder');
 var geocoder = NodeGeocoder({
     provider: 'openstreetmap',
     httpAdapter: 'https',
     formatter: null
-  });
-
-// TODO: After save on video to generate video thumbnail & description as 'video presentation {{ nom_du_commerce }}'
-// TODO: Devide cloud code into multiple controller class, like Commerce.js (before, after and webhooks)
+});
 
 // Clear associated photos & videos of a commerce when deleted
 Parse.Cloud.afterDelete("Commerce", (request) => {
