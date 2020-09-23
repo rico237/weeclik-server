@@ -258,7 +258,7 @@ app.post("/share", (req, res) => {
 							message: 'Sharing of commerce: '+ commerce.id + 'has been done successfully'
 						});
 					}, (errorSavingUser) => {
-						return res.status(400).send({
+						return res.status(402).send({
 							success: 'false',
 							message: 'Updating of user did fail. Original error => '+ errorSavingUser.message
 						});
@@ -271,7 +271,7 @@ app.post("/share", (req, res) => {
 					});
 				});
 			}, (savingError) => {
-				return res.status(400).send({
+				return res.status(401).send({
 					success: 'false',
 					message: 'Updating of commerce did fail. Original error => '+ errorSavingUser.message
 				});
@@ -279,7 +279,7 @@ app.post("/share", (req, res) => {
 
 			
 		}, (commerceError) => {
-			return res.status(404).send({
+			return res.status(403).send({
 				success: 'false',
 				message: 'Loading of commerce error. Original error => '+ commerceError.message
 			});
@@ -287,8 +287,7 @@ app.post("/share", (req, res) => {
 
 	} else {
 		return res.status(400).send({
-			success: 'false',
-			message: 'missing information such as userId or commerceId'
+			error: 'missing information such as userId or commerceId'
 		});
 	}
 
