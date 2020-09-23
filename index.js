@@ -198,33 +198,33 @@ app.post('/send-error-mail', (req, res) => {
 });
 
 // Match the raw body to content type application/json
-app.post('/webhook', (request, response) => {
-	let event;
-	try {event = request.body;}
-	catch (err) {response.status(400).send(`Webhook Error: ${err.message}`);}
-	console.log(event)
-    // Handle the event
-    switch (event.type) {
-    	case 'payment_intent.succeeded':
-    	const paymentIntent = event.data.object;
-    	response.json({received: true, method : event.data.object});
-    	break;
-    	case 'payment_method.attached':
-    	response.json({received: true, method : event.data.object});
-    	break;
-    	case 'payment_intent.created':
-    	response.json({received: true, method : event.data.object});
-    	break;
-    	case 'charge.succeeded':
-    	response.json({received: true, method : event.data.object});
-    	break;
-    	default:
-        // Unexpected event type
-        console.log('Stripe event not handled by server')
-        console.log(event.type)
-        return response.status(400).end();
-    }
-});
+// app.post('/webhook', (request, response) => {
+// 	let event;
+// 	try {event = request.body;}
+// 	catch (err) {response.status(400).send(`Webhook Error: ${err.message}`);}
+// 	console.log(event)
+//     // Handle the event
+//     switch (event.type) {
+//     	case 'payment_intent.succeeded':
+//     	const paymentIntent = event.data.object;
+//     	response.json({received: true, method : event.data.object});
+//     	break;
+//     	case 'payment_method.attached':
+//     	response.json({received: true, method : event.data.object});
+//     	break;
+//     	case 'payment_intent.created':
+//     	response.json({received: true, method : event.data.object});
+//     	break;
+//     	case 'charge.succeeded':
+//     	response.json({received: true, method : event.data.object});
+//     	break;
+//     	default:
+//         // Unexpected event type
+//         console.log('Stripe event not handled by server')
+//         console.log(event.type)
+//         return response.status(400).end();
+//     }
+// });
 
 app.post("/share", (req, res) => {    
 	console.log("/share commerce endpoint");
@@ -232,58 +232,47 @@ app.post("/share", (req, res) => {
 	const commerceId = req.body.commerceId;
 	const userId = req.body.userId;
 
-	if (commerceId && userId) {
+	if (commerceId) {
 		var query = new Parse.Query(Parse.Object.extend("Commerce"));
 		query.get(commerceId).then((commerce) => {
 			commerce.increment("nombrePartages");
 			commerce.save(null, {useMasterKey: true}).then((commerceSaved) => {
 				// Fetch user
-				var userQuery = new Parse.Query(Parse.User);
-				userQuery.get(userId).then((user) => {
-					// TODO: check if values are nil
-					var shares = user.get("mes_partages");
-					if (shares === undefined || shares === null || typeof shares === 'undefined') {
-						// Date is null
-						user.set("mes_partages", []);
-						user.set("mes_partages_dates", []);
-					} else {
-						// Data already exists
-						user.add("mes_partages", commerce.id);
-						user.add("mes_partages_dates", new Date());
-					}
+				if (userId) {
+					var userQuery = new Parse.Query(Parse.User);
+					userQuery.get(userId).then((user) => {
+						// TODO: check if values are nil
+						var shares = user.get("mes_partages");
+						if (shares === undefined || shares === null || typeof shares === 'undefined') {
+							// Date is null
+							user.set("mes_partages", []);
+							user.set("mes_partages_dates", []);
+						} else {
+							// Data already exists
+							user.add("mes_partages", commerce.id);
+							user.add("mes_partages_dates", new Date());
+						}
 
-					user.save(null, {useMasterKey: true}).then((user) => {
-						return res.status(200).send({
-							message: 'Sharing of commerce: '+ commerceId + 'has been done successfully by user: '+ userId
+						user.save(null, {useMasterKey: true}).then((user) => {
+							return res.status(200).send({ message: 'Sharing of commerce: '+ commerceId + 'has been done successfully by user: '+ userId });
+						}, (errorSavingUser) => {
+							return res.status(402).send({ error: 'Updating of user did fail. Original error => '+ errorSavingUser.message });
 						});
-					}, (errorSavingUser) => {
-						return res.status(402).send({
-							error: 'Updating of user did fail. Original error => '+ errorSavingUser.message
-						});
+					}, (userError) => {
+						return res.status(404).send({ error: 'User not found. Original error => '+ userError.message });
 					});
-
-				}, (userError) => {
-					return res.status(404).send({
-						error: 'User not found. Original error => '+ userError.message
-					});
-				});
+				} else {
+					return res.status(200).send({ message: 'Sharing of commerce: '+ commerceId + 'has been done successfully' });
+				}
+				
 			}, (savingError) => {
-				return res.status(401).send({
-					error: 'Updating of commerce did fail. Original error => '+ errorSavingUser.message
-				});
+				return res.status(401).send({ error: 'Updating of commerce did fail. Original error => '+ errorSavingUser.message });
 			});
-
-			
 		}, (commerceError) => {
-			return res.status(403).send({
-				error: 'Commerce not found. Original error => '+ commerceError.message
-			});
+			return res.status(403).send({ error: 'Commerce not found. Original error => '+ commerceError.message });
 		});
-
 	} else {
-		return res.status(400).send({
-			error: 'missing information such as userId or commerceId'
-		});
+		return res.status(400).send({ error: 'missing commerce id parameter' });
 	}
 
 });
