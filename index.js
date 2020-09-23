@@ -254,34 +254,29 @@ app.post("/share", (req, res) => {
 
 					user.save(null, {useMasterKey: true}).then((user) => {
 						return res.status(200).send({
-							success: 'true',
-							message: 'Sharing of commerce: '+ commerce.id + 'has been done successfully'
+							message: 'Sharing of commerce: '+ commerceId + 'has been done successfully by user: '+ userId
 						});
 					}, (errorSavingUser) => {
 						return res.status(402).send({
-							success: 'false',
-							message: 'Updating of user did fail. Original error => '+ errorSavingUser.message
+							error: 'Updating of user did fail. Original error => '+ errorSavingUser.message
 						});
 					});
 
 				}, (userError) => {
 					return res.status(404).send({
-						success: 'false',
-						message: 'Loading of user error. Original error => '+ userError.message
+						error: 'User not found. Original error => '+ userError.message
 					});
 				});
 			}, (savingError) => {
 				return res.status(401).send({
-					success: 'false',
-					message: 'Updating of commerce did fail. Original error => '+ errorSavingUser.message
+					error: 'Updating of commerce did fail. Original error => '+ errorSavingUser.message
 				});
 			});
 
 			
 		}, (commerceError) => {
 			return res.status(403).send({
-				success: 'false',
-				message: 'Loading of commerce error. Original error => '+ commerceError.message
+				error: 'Commerce not found. Original error => '+ commerceError.message
 			});
 		});
 
