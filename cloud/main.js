@@ -1,12 +1,12 @@
+// TODO: After save on video to generate video thumbnail & description as 'video presentation {{ nom_du_commerce }}'
+// TODO: Devide cloud code into multiple controller class, like Commerce.js (before, after and webhooks)
+
 var NodeGeocoder = require('node-geocoder');
 var geocoder = NodeGeocoder({
     provider: 'openstreetmap',
     httpAdapter: 'https',
     formatter: null
-  });
-
-// TODO: After save on video to generate video thumbnail & description as 'video presentation {{ nom_du_commerce }}'
-// TODO: Devide cloud code into multiple controller class, like Commerce.js (before, after and webhooks)
+});
 
 // Clear associated photos & videos of a commerce when deleted
 Parse.Cloud.afterDelete("Commerce", (request) => {
@@ -58,11 +58,6 @@ Parse.Cloud.afterDelete("Commerce", (request) => {
     });
 });
 
-// Parse.Cloud.beforeSave("Commerce", (request) => {
-//     const parseObject = request.object;
-//     if ( parseObject.getPublicWriteAccess() ) {throw "The public is allowed to change this object, please set the proper ACL";}
-// });
-
 Parse.Cloud.define('nullPosition', async (request) => {
     const query = new Parse.Query("Commerce");
     query.equalTo("position", new Parse.GeoPoint({latitude: 0.0, longitude: 0.0}) );             // Status of commerce == paid
@@ -70,13 +65,25 @@ Parse.Cloud.define('nullPosition', async (request) => {
     return result;
 });
 
+Parse.Cloud.afterSave(Parse.User, (request) => {
+    const parseObject   = request.object;
+    const partagesIds   = parseObject.get("mes_partages");
+
+    // Set mespartages to empty arrays if null
+    if (partagesIds === undefined || partagesIds === null || typeof partagesIds === 'undefined')  {
+        parseObject.set("mes_partages", []);
+        parseObject.set("mes_partages_dates", []);
+    }
+});
+
 Parse.Cloud.afterSave("Commerce", (request) => {
     const parseObject   = request.object;
     const description   = parseObject.get("description");
     const brouillon     = parseObject.get("brouillon");
     const position      = parseObject.get("position");
+    const endOfPayment  = parseObject.get("endedSubscription");
 
-    if (position.latitude === 0 && position.longitude === 0) {
+    if (typeof position === 'undefined' || position === undefined || position === null || (position.latitude === 0 && position.longitude === 0)) {
         const address = parseObject.get("adresse");
         geocoder.geocode(address)
                 .then(response => {
@@ -94,40 +101,11 @@ Parse.Cloud.afterSave("Commerce", (request) => {
     }
 
     // Set blank and empty values
-    if (brouillon === undefined || brouillon === null || typeof brouillon === 'undefined') 
-    {request.object.set("brouillon", true);}
-
-    if (description !== undefined || description !== "" || typeof description !== 'undefined') {
-        var bannedWords = [
-        "au", "un", "une", "à", "il", "elle", "ils", "elles", "mais", "où", "est", "donc", "or", "ni", "car", " ",
-        "de", "la", "et", "du", "aux", "le", "se", "fait", "avec", "en", "des", "pas", "deux", "\n",
-        "\t", "\n\t", "<br>", "<br/>", "<br />", "l", "a", "n", "test", "description", "sappuie", "sur", "pour",
-        "les", "proposer", "très"
-        ];
-
-        var sorted = [];
-        for (var i = 0; i < bannedWords.length; i++) {
-            var filtered = bannedWords[i].toLowerCase();
-            sorted.push(filtered);
-        }
-        sorted.sort();
-
-        var hashtags = [];
-
-        if (typeof description.split(" ") !== 'undefined') {
-            let res = description.split(" ");
-
-            for (var i = 0; i < res.length; i++) {
-                let word = res[i].toLowerCase().replace(",","").replace(".","").replace(";","").replace("'", "");
-                if (!sorted.includes(word)) {
-                    hashtags.push("#"+word);
-                    console.log("Word tags");
-                    console.log(word);
-                }
-            }
-
-            request.object.set("tags", hashtags);
-        }
+    if (brouillon === undefined || brouillon === null || typeof brouillon === 'undefined')  {
+        request.object.set("brouillon", true);
+    }
+    if (endOfPayment === undefined || endOfPayment === null || typeof endOfPayment === 'undefined')  {
+        parseObject.set("endedSubscription", new Date());
     }
 });
 
@@ -141,45 +119,6 @@ Parse.Cloud.define('endedSubscription', async (request) => {
     const result = await query.find();
     return result;
 });
-
-// Parse.Cloud.define("retrieveAllObjects", (request) => {
-//     var result     = [];
-//     var chunk_size = 1000;
-//     var processCallback = (res) => {
-//         result = result.concat(res);
-//         console.log(result)
-//         if (res.length === chunk_size) {
-//             process(res[res.length-1].id);
-//         } else {
-//             console.log(result)
-//             return result
-//             // status.success(result);
-//         }
-//     };
-//     var process = (skip) => {
-//         var query = new Parse.Query(request.params.object_type);
-//         if (skip) {
-//             query.greaterThan("objectId", skip);
-//         }
-//         if (request.params.update_at) {
-//             query.greaterThan("updatedAt", request.params.update_at);
-//         }
-//         if (request.params.only_objectId) {
-//             query.select("objectId");
-//         }
-//         query.limit(chunk_size);
-//         query.ascending("objectId");
-//         query.find().then(res => {
-//             console.log(res)
-//             processCallback(res);
-//         })
-//         .catch(error => {
-//             console.log(error)
-//             status.error("query unsuccessful, length of result " + result.length + ", error:" + error.code + " " + error.message);
-//         });
-//     };
-//     process(false);
-// });
 
 // Parse.Cloud.define("sendOutdatedEmail", (request) => {
 //   // Get access to Parse Server's cache
