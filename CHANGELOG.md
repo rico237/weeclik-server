@@ -2,9 +2,27 @@
 All notable changes to this project will be documented in this file.        
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
+## [Unrealed] - [2.1]
 ### Changed
+- When charging a commerce via Stripe API, commerceId is now being passed as a parameter
+- When sharing a commerce, a timer is also set on Back to prevent looping on endpoint and getting an infinite number of sharing
+
+## [2.0] - 2020-09-24
+### Added
+- New sharing Endpoint POST (/share). Needs a commerceId(required) and a userId(optional) to increment sharing number.
+- After save of commerce now check if end of subscription is null, set its date tu current, so the cron task, checking for expired commerces), can invalidate it directly.
+
+### Changed
+- After save of commerce now check if it's null not only if latitude & longitude are egal to 0.
 - Better handling of [Stripe](https://stripe.com/fr) payment methods (billing + others) - POST: /charge (async).
+- Clean up of dependencies
+- Updated npm librairies such as Parse, Dashboard, etc.
+
+### Removed
+- After save of commerce no longer check description for hashtags.
+- Endpoint GET (/valid-email/:email), for checking if user email is valid, never used.
+- Endpoint GET (/redirect-to-store), for getting a link to download the app, [Weeclik website](https://www.weeclik.com/) is now being used for this purpose.
+- Endpoint POST (/webhook), which was used during [Stripe](https://stripe.com/fr) integration tests.
 
 ## [1.0.7] - 2020-01-12
 ### Added
