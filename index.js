@@ -26,7 +26,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 moment().format();
 
-let databaseUri = process.env.DATABASE_URI || process.env.MONGODB_URI;
+let databaseUri = process.env.DATABASE_URI;
 if (!databaseUri) { 
 	console.log('DATABASE_URI not specified, falling back to localhost.');
 } else {
