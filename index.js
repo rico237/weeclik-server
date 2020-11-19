@@ -1,4 +1,5 @@
-require('dotenv').config()
+require('dotenv').config({ path: './dev.env' });
+// require('dotenv').config();
 
 let express         = require('express');
 let app             = express();
@@ -6,16 +7,15 @@ let app             = express();
 let ParseServer     = require('parse-server').ParseServer;
 let ParseDashboard  = require('parse-dashboard');
 let path            = require('path');
-const cron          = require('node-cron');
 let moment          = require('moment');
 let Parse           = require('parse/node');
 const resolve       = require('path').resolve;
 const bodyParser    = require('body-parser'); // Parse incoming request bodies
 let GCSAdapter      = require('@parse/gcs-files-adapter');
 let mailgun         = require('mailgun-js')({apiKey: process.env.ADAPTER_API_KEY, domain: process.env.ADAPTER_DOMAIN, host: 'api.eu.mailgun.net'});
-const stripe        = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const cors          = require('cors');
 
+// Parse lib init
 Parse.initialize(process.env.APP_ID, null, process.env.MASTER_KEY);
 Parse.masterKey = process.env.MASTER_KEY;
 Parse.serverURL = process.env.SERVER_URL;
@@ -35,8 +35,7 @@ if (!databaseUri) {
 
 let options = { allowInsecureHTTP: true };
 let dashboard = new ParseDashboard({
-	"apps": [
-	{
+	"apps": [{
 		"serverURL":  process.env.SERVER_URL,
 		"appId":      process.env.APP_ID,
 		"masterKey":  process.env.MASTER_KEY,
@@ -45,8 +44,7 @@ let dashboard = new ParseDashboard({
 		"supportedPushLocales": ["fr"]
 	}],
 	"iconsFolder": "icons",
-	"users": [
-	{
+	"users": [{
 		"user": process.env.ADMIN_USER,
 		"pass": process.env.ADMIN_PASSWORD
 	}]
@@ -137,35 +135,12 @@ app.use(cors());
 
 let port = process.env.PORT || 1337;
 let httpServer = require('http').createServer(app);
-httpServer.listen(port, function() {
-	console.log('Running weeclik server on port ' + port);
-});
+httpServer.listen(port, () => { console.log('Running weeclik server on port ' + port); });
 
-// Toute les heure à 0 minute
-// '* * 1 * *' tous les mois ?
-// '* * * * *'
-// cron.schedule('*/10 * * * * *', async () => {
-cron.schedule('0 * * * *', async () => {
-	// Chaque heure à 0 (01:00, 15:00, etc)
-  	// TODO: Ecrire fonction pour ecriture de log
-  	// TODO: Envoi de mail à chaque commerce passant en mode desactivé (user & admin)
-	const functionName = 'endedSubscription';
-	console.log(`Function ${functionName} executé à ${moment()}`);
-	const commerces = await Parse.Cloud.run(functionName);
-	console.log("Successfully retrieved " + commerces.length + " commerces.");
-
-	for (let i = 0; i < commerces.length; i++) {
-		let object = commerces[i];
-		if (moment(object.get('endSubscription')).isValid()) {
-			let day =  moment(object.get('endSubscription'));
-			if (moment().isSameOrAfter(day)) {
-				console.log(object.get('nomCommerce') +  ' passed date');
-				object.set("statutCommerce", 0);
-				await object.save(null, {useMasterKey:true});
-			}
-		}
-	}
-});
+// Import routes
+require('./routes/stripe')(app);
+// Cron tasks (repetitive tasks)
+require('./cron/cron')(app);
 
 app.post('/send-error-mail', (req, res) => {
 	console.log(req.body);
@@ -275,43 +250,4 @@ app.post("/share", (req, res) => {
 		return res.status(400).send({ error: 'missing commerce id parameter' });
 	}
 
-});
-
-app.post("/charge", (req, res) => {    
-	if (req.body.object === 'event') {return;}
-
-	stripe.charges.create({
-		amount: process.env.ABONNEMENT_PRICE_ONE_YEAR,
-		currency: "eur",
-		description: "Abonnement annuel d'un commerce sur Weeclik (web)",
-		source: req.body.token.id
-	}).then(response => {
-		res.json({ok: true, message: 'success', response: response});
-	}).catch(error => {
-		const message = error.type + ' : ' + error.message;
-		console.log(message)
-		switch (error.type) {
-			case 'StripeCardError':
-              // A declined card error
-              error.message; // => e.g. "Your card's expiration year is invalid."
-              break;
-              case 'StripeInvalidRequestError':
-              error.message;
-              // Invalid parameters were supplied to Stripe's API
-              break;
-              case 'StripeAPIError':
-              // An error occurred internally with Stripe's API
-              break;
-              case 'StripeConnectionError':
-              // Some kind of error occurred during the HTTPS communication
-              break;
-              case 'StripeAuthenticationError':
-              // You probably used an incorrect API key
-              break;
-              case 'StripeRateLimitError':
-              // Too many requests hit the API too quickly
-              break;
-          }
-          res.status(500).json({ok: false, message: 'error', response: message});
-      });
 });
