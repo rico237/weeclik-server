@@ -45,54 +45,34 @@ module.exports = function(app){
   });
 
   app.post('/create-checkout-session', async (req, res) => {
+    const commerceId = req.body.commerceId;
+    console.log(`create-checkout-session Body ${commerceId}`);
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
         { price: process.env.PRICE, quantity: 1 },
       ],
       mode: 'payment',
-      success_url: process.env.ROOT_SERVER_URL + '/' + 'user',
-      cancel_url: process.env.ROOT_SERVER_URL + '/' + 'user',
+      success_url: `${process.env.ROOT_SERVER_URL}/user?session_id={CHECKOUT_SESSION_ID}&commerce_id=${commerceId}`,
+      cancel_url: `${process.env.ROOT_SERVER_URL}/user`,
     });
 
     res.json({ id: session.id });
   });
 
-  // Webhook handler for asynchronous events.
-  // app.post('/stripe-response-webhook', async (req, res) => {
-  //   let data;
-  //   let eventType;
-  //   // Check if webhook signing is configured.
-  //   if (process.env.STRIPE_WEBHOOK_SECRET) {
-  //     // Retrieve the event by verifying the signature using the raw body and secret.
-  //     let event;
-  //     let signature = req.headers['stripe-signature'];
+  app.post('/retrieve-checkout-session-status', async (req, res) => {
+    const checkoutId = req.body.checkout.id;
+    console.log(`create-checkout-session Body ${checkoutId}`);
 
-  //     try {
-  //       event = stripe.webhooks.constructEvent(
-  //         req.rawBody,
-  //         signature,
-  //         process.env.STRIPE_WEBHOOK_SECRET
-  //       );
-  //     } catch (err) {
-  //       console.log(`⚠️  Webhook signature verification failed.`);
-  //       return res.sendStatus(400);
-  //     }
-  //     // Extract the object from the event.
-  //     data = event.data;
-  //     eventType = event.type;
-  //   } else {
-  //     // Webhook signing is recommended, but if the secret is not configured in `config.js`,
-  //     // retrieve the event data directly from the request body.
-  //     data = req.body.data;
-  //     eventType = req.body.type;
-  //   }
+    const session = await stripe.checkout.sessions.retrieve(`${checkoutId}`);
 
-  //   if (eventType === 'checkout.session.completed') {
-  //     console.log(`🔔  Payment received!`);
-  //   }
-
-  //   res.sendStatus(200);
-  // });
+    if (session.object === 'checkout.session') {
+      // Check this for result of payment (enum: paid || unpaid || no_payment_required)
+      res.json({ payment_status: session.payment_status });  
+    } else {
+      res.status(400).json({message: "Invalid id, not returning a session object"});
+    }
+  });
 
 }
