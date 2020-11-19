@@ -14,6 +14,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 - Move someroute to different files, all routes / cron are no longer in one unique file
 
+### Removed
+- Endpoint POST (/charge) since no longer used by web app project
+
 ## [2.1] - 2020-11-08
 ### Changed
 - Prepare MongoDB Atlas migration with removal of MONGODB_URI config var, the server app now uses DATABASE_URI config var name (not linked to Heroku's MongoDB Add-on).

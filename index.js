@@ -1,5 +1,5 @@
-require('dotenv').config({ path: './dev.env' });
-// require('dotenv').config();
+// require('dotenv').config({ path: './dev.env' });
+require('dotenv').config();
 
 let express         = require('express');
 let app             = express();
