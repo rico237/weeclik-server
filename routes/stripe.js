@@ -4,7 +4,7 @@ module.exports = function(app){
 
   app.post('/create-checkout-session', async (req, res) => {
     const commerceId = req.body.commerceId;
-    console.log(`create-checkout-session Body ${commerceId}`);
+    console.log(`create-checkout-session Body commerceId: ${commerceId}`);
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -12,8 +12,8 @@ module.exports = function(app){
         { price: process.env.PRICE, quantity: 1 },
       ],
       mode: 'payment',
-      success_url: `${process.env.ROOT_SERVER_URL}/user?session_id={CHECKOUT_SESSION_ID}&commerce_id=${commerceId}`,
-      cancel_url: `${process.env.ROOT_SERVER_URL}/user`,
+      success_url: `${process.env.WEB_URL}/user?session_id={CHECKOUT_SESSION_ID}&commerce_id=${commerceId}`,
+      cancel_url: `${process.env.WEB_URL}/user`,
     });
 
     res.json({ id: session.id });
