@@ -12,15 +12,16 @@ module.exports = function(app){
         { price: process.env.PRICE, quantity: 1 },
       ],
       mode: 'payment',
-      success_url: `${process.env.WEB_URL}/user?session_id={CHECKOUT_SESSION_ID}&commerce_id=${commerceId}`,
-      cancel_url: `${process.env.WEB_URL}/user`,
+      // success_url: `${process.env.WEB_URL}/success-checkout?session_id={CHECKOUT_SESSION_ID}&commerce_id=${commerceId}`,
+      success_url: `${process.env.WEB_URL}/success-checkout/{CHECKOUT_SESSION_ID}/${commerceId}`,
+      cancel_url: `${process.env.WEB_URL}/aboutcommerce/${commerceId}`,
     });
 
     res.json({ id: session.id });
   });
 
   app.post('/retrieve-checkout-session-status', async (req, res) => {
-    const checkoutId = req.body.checkout.id;
+    const checkoutId = req.body.checkoutId;
     console.log(`create-checkout-session Body ${checkoutId}`);
 
     const session = await stripe.checkout.sessions.retrieve(`${checkoutId}`);
