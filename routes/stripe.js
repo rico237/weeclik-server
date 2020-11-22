@@ -16,6 +16,10 @@ module.exports = function(app){
                 mode: 'payment',
                 success_url: `${process.env.WEB_URL}/success-checkout/{CHECKOUT_SESSION_ID}/${commerceId}`,
                 cancel_url: `${process.env.WEB_URL}/aboutcommerce/${commerceId}`,
+                metadata: {
+                    'commerce_id': `${commerceId}`,
+                    'customer_email': `${userEmail}`
+                },
             });
 
             res.json({ id: session.id });
