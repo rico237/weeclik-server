@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [2.2] - 2020-11-19
 ### Added
 - Added a new endpoint POST (/create-checkout-session), for payment checkout / CSA 3D secure integration
+- Added a new endpoint POST (/retrieve-checkout-session-status), to confirm the successfull payment of a checkout sssion
 
 ### Changed
 - Move someroute to different files, all routes / cron are no longer in one unique file

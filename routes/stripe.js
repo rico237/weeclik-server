@@ -5,8 +5,6 @@ module.exports = function(app){
     app.post('/create-checkout-session', async (req, res) => {
         const commerceId = req.body.commerceId;
         const userEmail = req.body.userEmail;
-        console.log(`create-checkout-session Body commerceId: ${commerceId}`);
-        console.log(`create-checkout-session Body userEmail: ${userEmail}`);
 
         try {
             const session = await stripe.checkout.sessions.create({
@@ -28,7 +26,6 @@ module.exports = function(app){
 
     app.post('/retrieve-checkout-session-status', async (req, res) => {
         const checkoutId = req.body.checkoutId;
-        console.log(`create-checkout-session Body ${checkoutId}`);
 
         try {
             const session = await stripe.checkout.sessions.retrieve(`${checkoutId}`);
