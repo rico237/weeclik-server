@@ -207,9 +207,10 @@ app.post("/publish-commerce", async (req, res) => {
 
 	const commerceId = req.body.commerceId;
 	const checkoutSessionId = req.body.checkoutSessionId;
-	console.log("checkoutSessionId: "+ req.body.checkoutSessionId + " for commerce: " + req.body.commerceId);
+	const userId = req.body.userId;
+	console.log("User "+ userId +" called checkoutSessionId: "+ checkoutSessionId + " for commerce: " + commerceId);
 	
-	if (commerceId && checkoutSessionId) {
+	if (commerceId && checkoutSessionId && userId) {
 		var query = new Parse.Query(Parse.Object.extend("StripeCheckoutSessions"));
 		query.equalTo("sessionId", checkoutSessionId);
 		const result = await query.find();
@@ -231,23 +232,24 @@ app.post("/publish-commerce", async (req, res) => {
 								const sessionObject = new StripeSessions();
 								sessionObject.set("sessionId", checkoutSessionId);
 								sessionObject.set("commerceId", commerceId);
+								sessionObject.set("commerce", commerce);
+								const acl = new Parse.ACL();
+                        		acl.setPublicReadAccess(true);
+								acl.setRoleWriteAccess("admin", true);
+								acl.setWriteAccess(userId, true);
+								sessionObject.setACL(acl);
 								sessionObject.save(null, {useMasterKey: true}).then((_) =>{
 									// Update commerce data
-									var query = new Parse.Query(Parse.Object.extend("Commerce"));
-									query.get(commerceId).then((commerce) => {
-										var aYearFromNow = new Date();
-										aYearFromNow.setFullYear(aYearFromNow.getFullYear() + 1);
-										commerce.set("endedSubscription", aYearFromNow);
-										commerce.set("statutCommerce", 1);
-										commerce.set("brouillon", false);
-										commerce.addUnique("stripeCheckoutSession", checkoutSessionId);
-										commerce.save(null, {useMasterKey: true}).then((_) => {
-											return res.status(200).send({ message: 'Publishing of commerce: '+ commerceId + 'has been done successfully' });
-										}, (savingError) => {
-											return res.status(402).send({ error: 'Updating of commerce did fail. Original error => '+ savingError.message });
-										});
-									}, (commerceError) => {
-										return res.status(404).send({ error: 'Commerce not found. Original error => '+ commerceError.message });
+									var aYearFromNow = new Date();
+									aYearFromNow.setFullYear(aYearFromNow.getFullYear() + 1);
+									commerce.set("endedSubscription", aYearFromNow);
+									commerce.set("statutCommerce", 1);
+									commerce.set("brouillon", false);
+									commerce.addUnique("stripeCheckoutSession", checkoutSessionId);
+									commerce.save(null, {useMasterKey: true}).then((_) => {
+										return res.status(200).send({ message: 'Publishing of commerce: '+ commerceId + 'has been done successfully' });
+									}, (savingError) => {
+										return res.status(402).send({ error: 'Updating of commerce did fail. Original error => '+ savingError.message });
 									});
 								}, (sessionError) => {
 									return res.status(403).send({ error: 'Error while saving the session object. Original error => '+ sessionError });

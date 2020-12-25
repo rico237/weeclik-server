@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [2.3.2] - 2020-12-25
 ### Changed
 - Bugfixes for endpoint POST (/publish-commerce).
+- Added required user id for endpoint POST (/publish-commerce).
 
 ## [2.3.1] - 2020-12-25
 ### Changed
