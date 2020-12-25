@@ -238,6 +238,8 @@ app.post("/publish-commerce", async (req, res) => {
 										var aYearFromNow = new Date();
 										aYearFromNow.setFullYear(aYearFromNow.getFullYear() + 1);
 										commerce.set("endedSubscription", aYearFromNow);
+										commerce.set("statutCommerce", 1);
+										commerce.set("brouillon", false);
 										commerce.addUnique("stripeCheckoutSession", checkoutSessionId);
 										commerce.save(null, {useMasterKey: true}).then((_) => {
 											return res.status(200).send({ message: 'Publishing of commerce: '+ commerceId + 'has been done successfully' });
