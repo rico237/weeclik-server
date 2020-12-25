@@ -212,7 +212,7 @@ app.post("/publish-commerce", async (req, res) => {
 	if (commerceId && checkoutSessionId) {
 
 		var queryR = new Parse.Query(Parse.Object.extend("Commerce"));
-		queryR.get(commerceId).then((commerce) => {
+		queryR.get(commerceId).then( async (commerce) => {
 			var sessions = commerce.get("stripeCheckoutSession");
 			// Set empty value if null/undefined
 			if (sessions === undefined) { commerce.set("stripeCheckoutSession", []); }
