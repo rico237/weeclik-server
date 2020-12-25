@@ -82,6 +82,7 @@ Parse.Cloud.afterSave("Commerce", (request) => {
     const brouillon     = parseObject.get("brouillon");
     const position      = parseObject.get("position");
     const endOfPayment  = parseObject.get("endedSubscription");
+    const sessions      = parseObject.get("stripeCheckoutSession");
 
     if (typeof position === 'undefined' || position === undefined || position === null || (position.latitude === 0 && position.longitude === 0)) {
         const address = parseObject.get("adresse");
@@ -102,10 +103,13 @@ Parse.Cloud.afterSave("Commerce", (request) => {
 
     // Set blank and empty values
     if (brouillon === undefined || brouillon === null || typeof brouillon === 'undefined')  {
-        request.object.set("brouillon", true);
+        parseObject.set("brouillon", true);
     }
     if (endOfPayment === undefined || endOfPayment === null || typeof endOfPayment === 'undefined')  {
         parseObject.set("endedSubscription", new Date());
+    }
+    if (sessions === undefined || sessions === null || typeof sessions === 'undefined') {
+        parseObject.set("stripeCheckoutSession", []);
     }
 });
 
