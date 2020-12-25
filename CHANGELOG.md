@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 - When charging a commerce via Stripe API, commerceId is now being passed as a parameter
 - When sharing a commerce, a timer is also set on Back to prevent looping on endpoint and getting an infinite number of sharing
+
+## [2.3.2] - 2020-12-25
+### Changed
 - Bugfixes for endpoint POST (/publish-commerce).
 
 ## [2.3.1] - 2020-12-25

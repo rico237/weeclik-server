@@ -210,49 +210,67 @@ app.post("/publish-commerce", async (req, res) => {
 	console.log("checkoutSessionId: "+ req.body.checkoutSessionId + " for commerce: " + req.body.commerceId);
 	
 	if (commerceId && checkoutSessionId) {
-
-		var queryR = new Parse.Query(Parse.Object.extend("Commerce"));
-		queryR.get(commerceId).then( async (commerce) => {
-			var sessions = commerce.get("stripeCheckoutSession");
-			// Set empty value if null/undefined
-			if (sessions === undefined) { commerce.set("stripeCheckoutSession", []); }
-			if (sessions === undefined || !sessions.includes(checkoutSessionId)) {
-				// Everything is ok continue with commerce publish
-				try {
-					const session = await stripe.checkout.sessions.retrieve(`${checkoutSessionId}`);
-					if (session.object === 'checkout.session') {
-						// Check this for result of payment (enum: paid || unpaid || no_payment_required)
-						if (session.payment_status === 'paid') {
-							var query = new Parse.Query(Parse.Object.extend("Commerce"));
-							query.get(commerceId).then((commerce) => {
-								var aYearFromNow = new Date();
-								aYearFromNow.setFullYear(aYearFromNow.getFullYear() + 1);
-								commerce.set("endedSubscription", aYearFromNow);
-								commerce.addUnique("stripeCheckoutSession", checkoutSessionId);
-								commerce.save(null, {useMasterKey: true}).then((commerceSaved) => {
-									return res.status(200).send({ message: 'Publishing of commerce: '+ commerceId + 'has been done successfully' });
-								}, (savingError) => {
-									return res.status(402).send({ error: 'Updating of commerce did fail. Original error => '+ savingError.message });
+		var query = new Parse.Query(Parse.Object.extend("StripeCheckoutSessions"));
+		query.equalTo("sessionId", checkoutSessionId);
+		const result = await query.find();
+		if (result === undefined || result.length === 0) {
+			var queryR = new Parse.Query(Parse.Object.extend("Commerce"));
+			queryR.get(commerceId).then( async (commerce) => {
+				var sessions = commerce.get("stripeCheckoutSession");
+				// Set empty value if null/undefined
+				if (sessions === undefined) { commerce.set("stripeCheckoutSession", []); }
+				if (sessions === undefined || !sessions.includes(checkoutSessionId)) {
+					// Everything is ok continue with commerce publish
+					try {
+						const session = await stripe.checkout.sessions.retrieve(`${checkoutSessionId}`);
+						if (session.object === 'checkout.session') {
+							// Check this for result of payment (enum: paid || unpaid || no_payment_required)
+							if (session.payment_status === 'paid') {
+								// Save checkout session id to prevent fraud
+								const StripeSessions = Parse.Object.extend("StripeCheckoutSessions");
+								const sessionObject = new StripeSessions();
+								sessionObject.set("sessionId", checkoutSessionId);
+								sessionObject.set("commerceId", commerceId);
+								sessionObject.save(null, {useMasterKey: true}).then((_) =>{
+									// Update commerce data
+									var query = new Parse.Query(Parse.Object.extend("Commerce"));
+									query.get(commerceId).then((commerce) => {
+										var aYearFromNow = new Date();
+										aYearFromNow.setFullYear(aYearFromNow.getFullYear() + 1);
+										commerce.set("endedSubscription", aYearFromNow);
+										commerce.addUnique("stripeCheckoutSession", checkoutSessionId);
+										commerce.save(null, {useMasterKey: true}).then((_) => {
+											return res.status(200).send({ message: 'Publishing of commerce: '+ commerceId + 'has been done successfully' });
+										}, (savingError) => {
+											return res.status(402).send({ error: 'Updating of commerce did fail. Original error => '+ savingError.message });
+										});
+									}, (commerceError) => {
+										return res.status(404).send({ error: 'Commerce not found. Original error => '+ commerceError.message });
+									});
+								}, (sessionError) => {
+									return res.status(403).send({ error: 'Error while saving the session object. Original error => '+ sessionError });
 								});
-							}, (commerceError) => {
-								return res.status(404).send({ error: 'Commerce not found. Original error => '+ commerceError.message });
-							});
+							} else {
+								res.status(403).json({ error: `Checkout session status: ${session.payment_status}, publishing not allowed for commerce: ${commerceId}`});
+							}
 						} else {
-							res.status(403).json({ error: `Checkout session status: ${session.payment_status}, publishing not allowed for commerce: ${commerceId}`});
+							res.status(402).json({ error: "Invalid chackout session id provided, not returning a session object"});
 						}
-					} else {
-						res.status(402).json({ error: "Invalid chackout session id provided, not returning a session object"});
+					} catch (error) {
+						res.status(400).json({ error: error});
 					}
-				} catch (error) {
-					res.status(400).json({ error: error});
+				} else {
+					// Stripe Checkout Session already exists in database
+					return res.status(403).send({ error: 'Stripe Checkout Session already exists in database'});
 				}
-			} else {
-				// Stripe Checkout Session already exists in database
-				return res.status(403).send({ error: 'Stripe Checkout Session already exists in database'});
-			}
-		}, (commerceError) => {
-			return res.status(403).send({ error: 'Commerce not found. Original error => '+ commerceError.message });
-		});
+			}, (commerceError) => {
+				return res.status(403).send({ error: 'Commerce not found. Original error => '+ commerceError.message });
+			});
+
+		} else {
+			return res.status(403).send({ error: 'Stripe Checkout Session Id already exists in database'});
+		}
+
 	} else {
 		res.status(400).json({ error: "The request was unacceptable, due to missing a required parameter."});
 	}
