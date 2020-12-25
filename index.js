@@ -212,7 +212,7 @@ app.post("/publish-commerce", async (req, res) => {
 	if (commerceId && checkoutSessionId) {
 		var sessionExist = await sessionsAlreadyExist(checkoutSessionId);
 		if (sessionExist === true) {
-			return res.status(403).send({ error: 'Stripe Checkout Session already exists in database'});
+			return res.status(403).send({ error: 'Stripe Checkout Session Id already exists in database'});
 		}
 
 		var queryR = new Parse.Query(Parse.Object.extend("Commerce"));
