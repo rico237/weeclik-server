@@ -207,9 +207,10 @@ app.post("/publish-commerce", async (req, res) => {
 
 	const commerceId = req.body.commerceId;
 	const checkoutSessionId = req.body.checkoutSessionId;
-	console.log("checkoutSessionId: "+ req.body.checkoutSessionId + " for commerce: " + req.body.commerceId);
+	const userId = req.body.userId;
+	console.log("User "+ userId +" called checkoutSessionId: "+ checkoutSessionId + " for commerce: " + commerceId);
 	
-	if (commerceId && checkoutSessionId) {
+	if (commerceId && checkoutSessionId && userId) {
 		var query = new Parse.Query(Parse.Object.extend("StripeCheckoutSessions"));
 		query.equalTo("sessionId", checkoutSessionId);
 		const result = await query.find();
@@ -232,6 +233,11 @@ app.post("/publish-commerce", async (req, res) => {
 								sessionObject.set("sessionId", checkoutSessionId);
 								sessionObject.set("commerceId", commerceId);
 								sessionObject.set("commerce", commerce);
+								const acl = new Parse.ACL();
+                        		acl.setPublicReadAccess(true);
+								acl.setRoleWriteAccess("admin", true);
+								acl.setWriteAccess(userId, true);
+								sessionObject.setACL(acl);
 								sessionObject.save(null, {useMasterKey: true}).then((_) =>{
 									// Update commerce data
 									var aYearFromNow = new Date();
