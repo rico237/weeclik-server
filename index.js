@@ -1,21 +1,22 @@
-require('dotenv').config()
+// require('dotenv').config({ path: './dev.env' });
+require('dotenv').config();
 
 let express         = require('express');
 let app             = express();
 
+const stripe 		= require('stripe')(process.env.STRIPE_SECRET_KEY);
 let ParseServer     = require('parse-server').ParseServer;
 let ParseDashboard  = require('parse-dashboard');
 let path            = require('path');
-const cron          = require('node-cron');
 let moment          = require('moment');
 let Parse           = require('parse/node');
 const resolve       = require('path').resolve;
 const bodyParser    = require('body-parser'); // Parse incoming request bodies
 let GCSAdapter      = require('@parse/gcs-files-adapter');
 let mailgun         = require('mailgun-js')({apiKey: process.env.ADAPTER_API_KEY, domain: process.env.ADAPTER_DOMAIN, host: 'api.eu.mailgun.net'});
-const stripe        = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const cors          = require('cors');
 
+// Parse lib init
 Parse.initialize(process.env.APP_ID, null, process.env.MASTER_KEY);
 Parse.masterKey = process.env.MASTER_KEY;
 Parse.serverURL = process.env.SERVER_URL;
@@ -35,8 +36,7 @@ if (!databaseUri) {
 
 let options = { allowInsecureHTTP: true };
 let dashboard = new ParseDashboard({
-	"apps": [
-	{
+	"apps": [{
 		"serverURL":  process.env.SERVER_URL,
 		"appId":      process.env.APP_ID,
 		"masterKey":  process.env.MASTER_KEY,
@@ -45,8 +45,7 @@ let dashboard = new ParseDashboard({
 		"supportedPushLocales": ["fr"]
 	}],
 	"iconsFolder": "icons",
-	"users": [
-	{
+	"users": [{
 		"user": process.env.ADMIN_USER,
 		"pass": process.env.ADMIN_PASSWORD
 	}]
@@ -137,35 +136,12 @@ app.use(cors());
 
 let port = process.env.PORT || 1337;
 let httpServer = require('http').createServer(app);
-httpServer.listen(port, function() {
-	console.log('Running weeclik server on port ' + port);
-});
+httpServer.listen(port, () => { console.log('Running weeclik server on port ' + port); });
 
-// Toute les heure à 0 minute
-// '* * 1 * *' tous les mois ?
-// '* * * * *'
-// cron.schedule('*/10 * * * * *', async () => {
-cron.schedule('0 * * * *', async () => {
-	// Chaque heure à 0 (01:00, 15:00, etc)
-  	// TODO: Ecrire fonction pour ecriture de log
-  	// TODO: Envoi de mail à chaque commerce passant en mode desactivé (user & admin)
-	const functionName = 'endedSubscription';
-	console.log(`Function ${functionName} executé à ${moment()}`);
-	const commerces = await Parse.Cloud.run(functionName);
-	console.log("Successfully retrieved " + commerces.length + " commerces.");
-
-	for (let i = 0; i < commerces.length; i++) {
-		let object = commerces[i];
-		if (moment(object.get('endSubscription')).isValid()) {
-			let day =  moment(object.get('endSubscription'));
-			if (moment().isSameOrAfter(day)) {
-				console.log(object.get('nomCommerce') +  ' passed date');
-				object.set("statutCommerce", 0);
-				await object.save(null, {useMasterKey:true});
-			}
-		}
-	}
-});
+// Import routes
+require('./routes/stripe')(app);
+// Cron tasks (repetitive tasks)
+require('./cron/cron')(app);
 
 app.post('/send-error-mail', (req, res) => {
 	console.log(req.body);
@@ -226,6 +202,62 @@ app.post('/send-error-mail', (req, res) => {
 //     }
 // });
 
+app.post("/publish-commerce", async (req, res) => {
+	console.log("/publish-commerce commerce endpoint");
+
+	const commerceId = req.body.commerceId;
+	const checkoutSessionId = req.body.checkoutSessionId;
+	console.log("checkoutSessionId: "+ req.body.checkoutSessionId + " for commerce: " + req.body.commerceId);
+	
+	if (commerceId && checkoutSessionId) {
+
+		var queryR = new Parse.Query(Parse.Object.extend("Commerce"));
+		queryR.get(commerceId).then((commerce) => {
+			var sessions = commerce.get("stripeCheckoutSession");
+			// Set empty value if null/undefined
+			if (sessions === undefined) { commerce.set("stripeCheckoutSession", []); }
+			if (sessions === undefined || !sessions.includes(checkoutSessionId)) {
+				// Everything is ok continue with commerce publish
+				try {
+					const session = await stripe.checkout.sessions.retrieve(`${checkoutSessionId}`);
+					if (session.object === 'checkout.session') {
+						// Check this for result of payment (enum: paid || unpaid || no_payment_required)
+						if (session.payment_status === 'paid') {
+							var query = new Parse.Query(Parse.Object.extend("Commerce"));
+							query.get(commerceId).then((commerce) => {
+								var aYearFromNow = new Date();
+								aYearFromNow.setFullYear(aYearFromNow.getFullYear() + 1);
+								commerce.set("endedSubscription", aYearFromNow);
+								commerce.addUnique("stripeCheckoutSession", checkoutSessionId);
+								commerce.save(null, {useMasterKey: true}).then((commerceSaved) => {
+									return res.status(200).send({ message: 'Publishing of commerce: '+ commerceId + 'has been done successfully' });
+								}, (savingError) => {
+									return res.status(402).send({ error: 'Updating of commerce did fail. Original error => '+ savingError.message });
+								});
+							}, (commerceError) => {
+								return res.status(404).send({ error: 'Commerce not found. Original error => '+ commerceError.message });
+							});
+						} else {
+							res.status(403).json({ error: `Checkout session status: ${session.payment_status}, publishing not allowed for commerce: ${commerceId}`});
+						}
+					} else {
+						res.status(402).json({ error: "Invalid chackout session id provided, not returning a session object"});
+					}
+				} catch (error) {
+					res.status(400).json({ error: error});
+				}
+			} else {
+				// Stripe Checkout Session already exists in database
+				return res.status(403).send({ error: 'Stripe Checkout Session already exists in database'});
+			}
+		}, (commerceError) => {
+			return res.status(403).send({ error: 'Commerce not found. Original error => '+ commerceError.message });
+		});
+	} else {
+		res.status(400).json({ error: "The request was unacceptable, due to missing a required parameter."});
+	}
+});
+
 app.post("/share", (req, res) => {    
 	console.log("/share commerce endpoint");
 	console.log("User: "+ req.body.userId + " is sharing commerce: " + req.body.commerceId);
@@ -266,7 +298,7 @@ app.post("/share", (req, res) => {
 				}
 				
 			}, (savingError) => {
-				return res.status(401).send({ error: 'Updating of commerce did fail. Original error => '+ errorSavingUser.message });
+				return res.status(401).send({ error: 'Updating of commerce did fail. Original error => '+ savingError.message });
 			});
 		}, (commerceError) => {
 			return res.status(403).send({ error: 'Commerce not found. Original error => '+ commerceError.message });
@@ -275,43 +307,4 @@ app.post("/share", (req, res) => {
 		return res.status(400).send({ error: 'missing commerce id parameter' });
 	}
 
-});
-
-app.post("/charge", (req, res) => {    
-	if (req.body.object === 'event') {return;}
-
-	stripe.charges.create({
-		amount: process.env.ABONNEMENT_PRICE_ONE_YEAR,
-		currency: "eur",
-		description: "Abonnement annuel d'un commerce sur Weeclik (web)",
-		source: req.body.token.id
-	}).then(response => {
-		res.json({ok: true, message: 'success', response: response});
-	}).catch(error => {
-		const message = error.type + ' : ' + error.message;
-		console.log(message)
-		switch (error.type) {
-			case 'StripeCardError':
-              // A declined card error
-              error.message; // => e.g. "Your card's expiration year is invalid."
-              break;
-              case 'StripeInvalidRequestError':
-              error.message;
-              // Invalid parameters were supplied to Stripe's API
-              break;
-              case 'StripeAPIError':
-              // An error occurred internally with Stripe's API
-              break;
-              case 'StripeConnectionError':
-              // Some kind of error occurred during the HTTPS communication
-              break;
-              case 'StripeAuthenticationError':
-              // You probably used an incorrect API key
-              break;
-              case 'StripeRateLimitError':
-              // Too many requests hit the API too quickly
-              break;
-          }
-          res.status(500).json({ok: false, message: 'error', response: message});
-      });
 });

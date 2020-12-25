@@ -2,10 +2,28 @@
 All notable changes to this project will be documented in this file.        
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unrealed]
+## [Unreleased]
 ### Changed
 - When charging a commerce via Stripe API, commerceId is now being passed as a parameter
 - When sharing a commerce, a timer is also set on Back to prevent looping on endpoint and getting an infinite number of sharing
+
+## [2.3] - 2020-12-25
+### Added
+- Added a new endpoint POST (/publish-commerce), to publish a commerce to weeclik network via backend, much secure than writing business logic in react app
+
+### Changed
+- Update cloud function after save for commerce, now create an empty array for stripeCheckoutSession, storing stripe checkout sessions IDs to prevent fraud.
+
+## [2.2] - 2020-11-19
+### Added
+- Added a new endpoint POST (/create-checkout-session), for payment checkout / CSA 3D secure integration
+- Added a new endpoint POST (/retrieve-checkout-session-status), to confirm the successfull payment of a checkout sssion
+
+### Changed
+- Move someroute to different files, all routes / cron are no longer in one unique file
+
+### Removed
+- Endpoint POST (/charge) since no longer used by web app project
 
 ## [2.1] - 2020-11-08
 ### Changed
