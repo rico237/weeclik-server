@@ -210,6 +210,10 @@ app.post("/publish-commerce", async (req, res) => {
 	console.log("checkoutSessionId: "+ req.body.checkoutSessionId + " for commerce: " + req.body.commerceId);
 	
 	if (commerceId && checkoutSessionId) {
+		var sessionExist = await sessionsAlreadyExist(checkoutSessionId);
+		if (sessionExist === true) {
+			return res.status(403).send({ error: 'Stripe Checkout Session already exists in database'});
+		}
 
 		var queryR = new Parse.Query(Parse.Object.extend("Commerce"));
 		queryR.get(commerceId).then( async (commerce) => {
@@ -223,19 +227,29 @@ app.post("/publish-commerce", async (req, res) => {
 					if (session.object === 'checkout.session') {
 						// Check this for result of payment (enum: paid || unpaid || no_payment_required)
 						if (session.payment_status === 'paid') {
-							var query = new Parse.Query(Parse.Object.extend("Commerce"));
-							query.get(commerceId).then((commerce) => {
-								var aYearFromNow = new Date();
-								aYearFromNow.setFullYear(aYearFromNow.getFullYear() + 1);
-								commerce.set("endedSubscription", aYearFromNow);
-								commerce.addUnique("stripeCheckoutSession", checkoutSessionId);
-								commerce.save(null, {useMasterKey: true}).then((commerceSaved) => {
-									return res.status(200).send({ message: 'Publishing of commerce: '+ commerceId + 'has been done successfully' });
-								}, (savingError) => {
-									return res.status(402).send({ error: 'Updating of commerce did fail. Original error => '+ savingError.message });
+							// Save checkout session id to prevent fraud
+							const StripeSessions = Parse.Object.extend("StripeCheckoutSessions");
+							const sessionObject = new StripeSessions();
+							sessionObject.set("sessionId", checkoutSessionId);
+							sessionObject.set("commerceId", commerceId);
+							sessionObject.save(null, {useMasterKey: true}).then((_) =>{
+								// Update commerce data
+								var query = new Parse.Query(Parse.Object.extend("Commerce"));
+								query.get(commerceId).then((commerce) => {
+									var aYearFromNow = new Date();
+									aYearFromNow.setFullYear(aYearFromNow.getFullYear() + 1);
+									commerce.set("endedSubscription", aYearFromNow);
+									commerce.addUnique("stripeCheckoutSession", checkoutSessionId);
+									commerce.save(null, {useMasterKey: true}).then((_) => {
+										return res.status(200).send({ message: 'Publishing of commerce: '+ commerceId + 'has been done successfully' });
+									}, (savingError) => {
+										return res.status(402).send({ error: 'Updating of commerce did fail. Original error => '+ savingError.message });
+									});
+								}, (commerceError) => {
+									return res.status(404).send({ error: 'Commerce not found. Original error => '+ commerceError.message });
 								});
-							}, (commerceError) => {
-								return res.status(404).send({ error: 'Commerce not found. Original error => '+ commerceError.message });
+							}, (sessionError) => {
+								return res.status(403).send({ error: 'Error while saving the session object. Original error => '+ sessionError });
 							});
 						} else {
 							res.status(403).json({ error: `Checkout session status: ${session.payment_status}, publishing not allowed for commerce: ${commerceId}`});
@@ -308,3 +322,14 @@ app.post("/share", (req, res) => {
 	}
 
 });
+
+async function sessionsAlreadyExist(id) {
+	var query = new Parse.Query(Parse.Object.extend("StripeCheckoutSessions"));
+	query.equalTo("sessionId", id);
+	const result = await query.find();
+	if (result.length === 0) {
+		return false;
+	} else {
+		return true;
+	}
+}
